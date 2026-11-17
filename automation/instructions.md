@@ -187,6 +187,13 @@ lake build
   [DIRX] reuses [DIR] definitions; remove descriptive paper comments; remove the
   computer-assisted sections; remove everything not needed for the introduction theorems.
 
+- **2026-11-16T19:40-08:00** (Task 4 start, raw entry in `automation/raw.md`): formalize Task 4
+  following the instructions; for the Kahn–Park reduction consult `sources/two_point_general_beta.tex`
+  (proof for $\frac12\le\beta\le1$); do not stop until Task 4 is complete unless there is an error or a
+  problem, in which case stop and report it.
+- **2026-11-16T20:07-08:00** (raw entry): approved adding $\beta\le1$ to `Auto.DIR.prop_2_1`; continue
+  Task 4.
+
 ## Settled decisions
 
 - Proof-section claims reference later results only in comments (setup phase). When proofs are
@@ -200,3 +207,6 @@ lake build
 Setup complete; proof stage prepared (rules in `AGENTS.md`, split in `automation/splitting.md`, dependency
 list `automation/proof_dependencies.txt`). Task 1 complete (branch `task1`, 2026-11-12). Next: Tasks 2, 3, 4 of
 `automation/splitting.md` in parallel.
+
+Task 4 (2026-11-16): in progress. `Auto.DIR.prop_2_1` now assumes $\beta\le1$ (user decision,
+`automation/ErrorReport.md`, 2026-11-16).

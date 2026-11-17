@@ -42,9 +42,11 @@ $B:[0,1]\to[0,\infty)$ satisfies $B(0)=B(1)=0$ and that the following two-point 
 holds:
 $$G_\beta[B](x,y)\ge0 \tag{2.2}$$
 for all $0\le x\le y\le1$. Then $\mathcal{B}_\beta\ge B$ (on $\mathcal{Q}$, where
-$\mathcal{B}_\beta$ is defined). -/
-theorem prop_2_1 (β : ℝ) (hβ : 2⁻¹ ≤ β) (B : ℝ → ℝ) (hB : ∀ x ∈ Icc (0 : ℝ) 1, 0 ≤ B x)
-    (hB0 : B 0 = 0) (hB1 : B 1 = 0)
+$\mathcal{B}_\beta$ is defined).
+
+**Discrepancy with the paper.** Paper: $\beta\ge\frac12$. Lean: $\frac12\le\beta\le1$. -/
+theorem prop_2_1 (β : ℝ) (hβ : 2⁻¹ ≤ β) (hβ1 : β ≤ 1) (B : ℝ → ℝ)
+    (hB : ∀ x ∈ Icc (0 : ℝ) 1, 0 ≤ B x) (hB0 : B 0 = 0) (hB1 : B 1 = 0)
     (h22 : ∀ x y : ℝ, 0 ≤ x → x ≤ y → y ≤ 1 → G β B x y ≥ 0) :
     ∀ x ∈ 𝒬, 𝓑 β x ≥ B x := by
   sorry
