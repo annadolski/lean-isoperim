@@ -8,6 +8,7 @@ module
 public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
+public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile_aux»
 
 /-!
 # [DIR] §5.4 Lower bounds for the Gaussian isoperimetric profile
@@ -45,15 +46,31 @@ section Proof_Proposition_5_11
 $\int_{-\infty}^te^{-s^2/2}\,ds=-t^{-1}e^{-t^2/2}-\int_{-\infty}^ts^{-2}e^{-s^2/2}\,ds$. -/
 theorem prop_5_11_ibp (t : ℝ) (ht : t < 0) :
     ∫ s in Iic t, exp (-s ^ 2 / 2) = -t⁻¹ * exp (-t ^ 2 / 2) - ∫ s in Iic t, s ^ (-2 : ℤ) *
-        exp (-s ^ 2 / 2) := by
-  sorry
+        exp (-s ^ 2 / 2) :=
+  integral_Iic_exp_ibp t ht
 
 /-- [DIR], proof of Proposition 5.11: thus
 $\Phi(t)=|t|^{-1}\varphi(t)-\int_{-\infty}^ts^{-2}\varphi(s)\,ds\le|t|^{-1}\varphi(t)$. -/
 theorem prop_5_11_Phi_le (t : ℝ) (ht : t < 0) :
     Φ t = |t|⁻¹ * φ t - ∫ s in Iic t, s ^ (-2 : ℤ) * φ s ∧
       |t|⁻¹ * φ t - ∫ s in Iic t, s ^ (-2 : ℤ) * φ s ≤ |t|⁻¹ * φ t := by
-  sorry
+  have hnn : 0 ≤ ∫ s in Iic t, s ^ (-2 : ℤ) * φ s :=
+    setIntegral_nonneg measurableSet_Iic fun s _ ↦
+      mul_nonneg (by simp only [zpow_neg, zpow_two]; exact inv_nonneg.2 (mul_self_nonneg s))
+        (by unfold φ; positivity)
+  refine ⟨?_, by linarith⟩
+  have h1 : Φ t = (2 * π) ^ (-(2⁻¹ : ℝ)) * ∫ s in Iic t, exp (-s ^ 2 / 2) :=
+    integral_const_mul _ _
+  have h2 : ∫ s in Iic t, s ^ (-2 : ℤ) * φ s =
+      (2 * π) ^ (-(2⁻¹ : ℝ)) * ∫ s in Iic t, s ^ (-2 : ℤ) * exp (-s ^ 2 / 2) := by
+    rw [← integral_const_mul]
+    congr 1
+    ext s
+    simp only [φ]
+    ring
+  rw [h1, h2, prop_5_11_ibp t ht, abs_of_neg ht]
+  simp only [φ]
+  ring
 
 /-- [DIR], proof of Proposition 5.11: $I=\varphi\circ\Phi^{-1}$ is an increasing function on
 $[0,\frac12]$; applying it on both sides, $\varphi(t)\le I(|t|^{-1}\varphi(t))$, at least as long
@@ -61,7 +78,22 @@ as $x=|t|^{-1}\varphi(t)\le\frac12$. This means $I(x)\ge x\cdot|t|$. -/
 theorem prop_5_11_apply_I (t : ℝ) (ht : t < 0) (hx : |t|⁻¹ * φ t ≤ 2⁻¹) :
     MonotoneOn I (Icc 0 2⁻¹) ∧ φ t ≤ I (|t|⁻¹ * φ t) ∧
       I (|t|⁻¹ * φ t) ≥ |t|⁻¹ * φ t * |t| := by
-  sorry
+  have hI : I = gProf := rfl
+  have hΦ : Φ = gCDF := rfl
+  have hφ : φ = gDens := rfl
+  have hmono : MonotoneOn I (Icc 0 2⁻¹) := hI ▸ gProf_strictMonoOn.monotoneOn
+  have hle := prop_5_11_Phi_le t ht
+  have hΦle : Φ t ≤ |t|⁻¹ * φ t := hle.1 ▸ hle.2
+  have hΦpos : 0 < Φ t := (gCDF_mem_Ioo t).1
+  have h1 : φ t ≤ I (|t|⁻¹ * φ t) := by
+    have := hmono ⟨hΦpos.le, hΦle.trans hx⟩ ⟨hΦpos.le.trans hΦle, hx⟩ hΦle
+    have h2 : I (Φ t) = φ t := by rw [hI, hΦ, hφ]; exact gProf_gCDF t
+    rwa [h2] at this
+  refine ⟨hmono, h1, ?_⟩
+  have ht0 : |t| ≠ 0 := abs_ne_zero.2 ht.ne
+  have h3 : |t|⁻¹ * φ t * |t| = φ t := by field_simp
+  rw [h3]
+  exact h1
 
 /-- [DIR], proof of Proposition 5.11: rewriting $x|t|=(2\pi)^{-1/2}e^{-t^2/2}$ (with
 $x=|t|^{-1}\varphi(t)$), we have $|t|=\sqrt2\sqrt{\log(1/x)-\log((2\pi)^{1/2}|t|)}$ (the expression
@@ -70,13 +102,51 @@ theorem prop_5_11_t_formula (t : ℝ) (ht : t < 0) :
     |t|⁻¹ * φ t * |t| = (2 * π) ^ (-(2⁻¹ : ℝ)) * exp (-t ^ 2 / 2) ∧
     log ((|t|⁻¹ * φ t)⁻¹) - log ((2 * π) ^ (2⁻¹ : ℝ) * |t|) = t ^ 2 / 2 ∧
     |t| = √2 * √(log ((|t|⁻¹ * φ t)⁻¹) - log ((2 * π) ^ (2⁻¹ : ℝ) * |t|)) := by
-  sorry
+  have ht0 : |t| ≠ 0 := abs_ne_zero.2 ht.ne
+  have hpos : 0 < |t| := abs_pos.2 ht.ne
+  have h1 : |t|⁻¹ * φ t * |t| = (2 * π) ^ (-(2⁻¹ : ℝ)) * exp (-t ^ 2 / 2) := by
+    rw [inv_mul_eq_div, div_mul_cancel₀ _ ht0]; rfl
+  have hA : (|t|⁻¹ * φ t)⁻¹ = ((2 * π) ^ (2⁻¹ : ℝ) * |t|) * exp (t ^ 2 / 2) := by
+    simp only [φ]
+    rw [rpow_neg (by positivity), mul_inv, mul_inv, inv_inv, inv_inv, ← exp_neg]
+    ring_nf
+  have h2 : log ((|t|⁻¹ * φ t)⁻¹) - log ((2 * π) ^ (2⁻¹ : ℝ) * |t|) = t ^ 2 / 2 := by
+    rw [hA, log_mul (by positivity) (exp_pos _).ne', log_exp]
+    ring
+  refine ⟨h1, h2, ?_⟩
+  rw [h2, ← sqrt_mul (by norm_num), show 2 * (t ^ 2 / 2) = t ^ 2 by ring, sqrt_sq_eq_abs]
 
 /-- [DIR], proof of Proposition 5.11: the assumption $x\le\frac12$ implies $|t|>0.64$, which also
 means $(2\pi)^{1/2}|t|>1$, and thus $|t|\le\sqrt2\sqrt{\log(1/x)}$. -/
 theorem prop_5_11_t_bounds (t : ℝ) (ht : t < 0) (hx : |t|⁻¹ * φ t ≤ 2⁻¹) :
     |t| > 0.64 ∧ (2 * π) ^ (2⁻¹ : ℝ) * |t| > 1 ∧ |t| ≤ √2 * √(log ((|t|⁻¹ * φ t)⁻¹)) := by
-  sorry
+  have hpos : 0 < |t| := abs_pos.2 ht.ne
+  have hsq : (2 * π) ^ (2⁻¹ : ℝ) = √(2 * π) := by rw [sqrt_eq_rpow, one_div]
+  have hb := sqrt_two_pi_bounds
+  have h1 : |t| > 0.64 := by
+    by_contra hc
+    replace hc := not_lt.1 hc
+    have he : exp (-(0.2048 : ℝ)) ≤ exp (-t ^ 2 / 2) := by
+      rw [exp_le_exp]
+      have : t ^ 2 = |t| ^ 2 := (sq_abs t).symm
+      nlinarith
+    have hc3 := exp_neg_ge_cubic (v := 0.2048) (by norm_num)
+    have hg := gConst_gt
+    have hφ : 0.3989 * 0.8147 ≤ φ t := by
+      simp only [φ]
+      have : (0.8147 : ℝ) ≤ exp (-t ^ 2 / 2) := by nlinarith
+      nlinarith [exp_pos (-t ^ 2 / 2)]
+    have : |t|⁻¹ * φ t ≥ φ t / 0.64 := by
+      rw [inv_mul_eq_div]
+      exact div_le_div_of_nonneg_left (by unfold φ; positivity) hpos hc
+    have : φ t / 0.64 > 2⁻¹ := by rw [gt_iff_lt, lt_div_iff₀ (by norm_num)]; nlinarith
+    linarith
+  have h2 : (2 * π) ^ (2⁻¹ : ℝ) * |t| > 1 := by rw [hsq]; nlinarith
+  refine ⟨h1, h2, ?_⟩
+  have hf := (prop_5_11_t_formula t ht).2.2
+  have hA : 0 < log ((2 * π) ^ (2⁻¹ : ℝ) * |t|) := log_pos h2
+  calc |t| = _ := hf
+    _ ≤ _ := by gcongr; linarith
 
 /-- [DIR], proof of Proposition 5.11: this, in turn, implies
 $\log((2\pi)^{1/2}|t|)\le\log(2\pi^{1/2}\sqrt{\log(1/x)})=\log(2\pi^{1/2})+\frac12\log\log(1/x)$. -/
@@ -85,7 +155,23 @@ theorem prop_5_11_log_bound (t : ℝ) (ht : t < 0) (hx : |t|⁻¹ * φ t ≤ 2�
         log (2 * π ^ (2⁻¹ : ℝ) * √(log ((|t|⁻¹ * φ t)⁻¹))) ∧
       log (2 * π ^ (2⁻¹ : ℝ) * √(log ((|t|⁻¹ * φ t)⁻¹))) =
         log (2 * π ^ (2⁻¹ : ℝ)) + 2⁻¹ * log (log ((|t|⁻¹ * φ t)⁻¹)) := by
-  sorry
+  obtain ⟨-, h2, h3⟩ := prop_5_11_t_bounds t ht hx
+  have hsq : (2 * π) ^ (2⁻¹ : ℝ) = √2 * √π := by
+    rw [← sqrt_mul (by norm_num), sqrt_eq_rpow, one_div]
+  have hsq' : π ^ (2⁻¹ : ℝ) = √π := by rw [sqrt_eq_rpow, one_div]
+  have hx0 : 0 < |t|⁻¹ * φ t := by
+    have := abs_pos.2 ht.ne; unfold φ; positivity
+  have hL : 0 < log ((|t|⁻¹ * φ t)⁻¹) := by
+    apply log_pos
+    rw [one_lt_inv₀ hx0]; linarith
+  constructor
+  · refine log_le_log (by linarith) ?_
+    rw [hsq, hsq']
+    have h22 : √2 * √2 = 2 := mul_self_sqrt (by norm_num)
+    calc √2 * √π * |t| ≤ √2 * √π * (√2 * √(log ((|t|⁻¹ * φ t)⁻¹))) := by gcongr
+      _ = _ := by linear_combination (√π * √(log ((|t|⁻¹ * φ t)⁻¹))) * h22
+  · rw [log_mul (by positivity) (sqrt_pos.2 hL).ne', log_sqrt hL.le]
+    ring
 
 /-- [DIR], proof of Proposition 5.11: we can write $\sqrt2\sqrt{\log(1/x)}\sqrt{1-\varepsilon}=|t|$,
 where $\varepsilon=(\log(1/x))^{-1}\log((2\pi)^{1/2}|t|)$ satisfies
@@ -96,7 +182,24 @@ theorem prop_5_11_eps (t : ℝ) (ht : t < 0) (hx : |t|⁻¹ * φ t ≤ 2⁻¹) :
     (log ((|t|⁻¹ * φ t)⁻¹))⁻¹ * log ((2 * π) ^ (2⁻¹ : ℝ) * |t|) ≤
       log (2 * π ^ (2⁻¹ : ℝ)) / log ((|t|⁻¹ * φ t)⁻¹) +
         2⁻¹ * (log (log ((|t|⁻¹ * φ t)⁻¹)) / log ((|t|⁻¹ * φ t)⁻¹)) := by
-  sorry
+  have hx0 : 0 < |t|⁻¹ * φ t := by
+    have := abs_pos.2 ht.ne; unfold φ; positivity
+  have hL : 0 < log ((|t|⁻¹ * φ t)⁻¹) := by
+    apply log_pos
+    rw [one_lt_inv₀ hx0]; linarith
+  obtain ⟨hb1, hb2⟩ := prop_5_11_log_bound t ht hx
+  constructor
+  · rw [mul_assoc, ← sqrt_mul hL.le, mul_sub, mul_one, ← mul_assoc, mul_inv_cancel₀ hL.ne',
+      one_mul]
+    exact (prop_5_11_t_formula t ht).2.2.symm
+  · have h := hb1.trans hb2.le
+    rw [inv_mul_eq_div]
+    have : log (2 * π ^ (2⁻¹ : ℝ)) / log ((|t|⁻¹ * φ t)⁻¹) +
+        2⁻¹ * (log (log ((|t|⁻¹ * φ t)⁻¹)) / log ((|t|⁻¹ * φ t)⁻¹)) =
+        (log (2 * π ^ (2⁻¹ : ℝ)) + 2⁻¹ * log (log ((|t|⁻¹ * φ t)⁻¹))) /
+          log ((|t|⁻¹ * φ t)⁻¹) := by ring
+    rw [this]
+    exact div_le_div_of_nonneg_right h hL.le
 
 /-- The bound
 $\varepsilon(x)=\frac{\log(2\pi^{1/2})}{\log(1/x)}+\frac12\frac{\log\log(1/x)}{\log(1/x)}$
@@ -108,14 +211,29 @@ noncomputable def εI (x : ℝ) : ℝ :=
 particular $\varepsilon<1$ if $x\le\frac15$. -/
 theorem prop_5_11_eps_small :
     Tendsto εI (𝓝[>] 0) (𝓝 0) ∧ ∀ x ∈ Ioc (0 : ℝ) 5⁻¹, εI x < 1 := by
-  sorry
+  constructor
+  · have hL : Tendsto (fun x : ℝ ↦ log x⁻¹) (𝓝[>] 0) atTop :=
+      tendsto_log_atTop.comp tendsto_inv_nhdsGT_zero
+    have h1 : Tendsto (fun y : ℝ ↦ log (2 * π ^ (2⁻¹ : ℝ)) / y) atTop (𝓝 0) :=
+      tendsto_const_nhds.div_atTop tendsto_id
+    have h2 : Tendsto (fun y : ℝ ↦ log y / y) atTop (𝓝 0) := by
+      simpa using tendsto_pow_log_div_mul_add_atTop 1 0 1 one_ne_zero
+    have := (h1.add (h2.const_mul 2⁻¹)).comp hL
+    rw [show (0 : ℝ) + 2⁻¹ * 0 = 0 by norm_num] at this
+    exact this
+  · intro x hx
+    have hx0 := hx.1
+    have h5 : (5 : ℝ) ≤ x⁻¹ := by rw [le_inv_comm₀ (by norm_num) hx0]; exact hx.2
+    have hy : (1.6 : ℝ) ≤ log x⁻¹ := (log_five_gt.le).trans (log_le_log (by norm_num) h5)
+    exact eps_lt_one_of_ge hy
 
 /-- [DIR], proof of Proposition 5.11: thus
 $I(x)\ge\sqrt2\cdot x\sqrt{\log(1/x)}\sqrt{1-\varepsilon}$, and using $\sqrt{1-\varepsilon}\ge
 1-\varepsilon$ (since $\varepsilon\le1$) the claim follows. (The inequality also needs
 $\varepsilon\ge0$, which holds here since $(2\pi)^{1/2}|t|>1$; it fails for $\varepsilon<0$.) -/
 theorem prop_5_11_final (ε : ℝ) (hε₀ : 0 ≤ ε) (hε : ε ≤ 1) : √(1 - ε) ≥ 1 - ε := by
-  sorry
+  rw [ge_iff_le, le_sqrt (by linarith) (by linarith)]
+  nlinarith
 
 end Proof_Proposition_5_11
 
@@ -126,13 +244,42 @@ theorem prop_5_11 (x : ℝ) (hx : x ∈ Ioc (0 : ℝ) 5⁻¹) :
     I x ≥ √2 * x * √(log x⁻¹) *
       (1 - 2⁻¹ * (log (log x⁻¹) / log x⁻¹) - log (2 *
           π ^ (2⁻¹ : ℝ)) / log x⁻¹) := by
-  sorry
+  obtain ⟨t, ht, hte⟩ := exists_neg_abs_inv_mul_gDens x hx
+  have hte' : |t|⁻¹ * φ t = x := hte
+  subst hte'
+  have hεs := prop_5_11_eps_small.2 _ hx
+  have hx2 : |t|⁻¹ * φ t ≤ 2⁻¹ := hx.2.trans (by norm_num)
+  obtain ⟨-, h2, -⟩ := prop_5_11_t_bounds t ht hx2
+  obtain ⟨he1, he2⟩ := prop_5_11_eps t ht hx2
+  obtain ⟨-, -, hI⟩ := prop_5_11_apply_I t ht hx2
+  have hx0 : 0 < |t|⁻¹ * φ t := hx.1
+  set x := |t|⁻¹ * φ t with hxdef
+  set L := log x⁻¹ with hLdef
+  set A := log ((2 * π) ^ (2⁻¹ : ℝ) * |t|) with hAdef
+  have hA : 0 < A := log_pos h2
+  have hL : 0 < L := by
+    apply log_pos
+    rw [one_lt_inv₀ hx0]; linarith
+  have hε0 : 0 ≤ L⁻¹ * A := by positivity
+  have hε1 : L⁻¹ * A ≤ εI x := by
+    simp only [εI]; exact he2
+  have hsq := prop_5_11_final (L⁻¹ * A) hε0 (by linarith)
+  have hR : 1 - 2⁻¹ * (log L / L) - log (2 * π ^ (2⁻¹ : ℝ)) / L = 1 - εI x := by
+    simp only [εI]; ring
+  rw [hR]
+  have hpos : 0 ≤ √2 * x * √L := by positivity
+  calc I x ≥ x * |t| := hI
+    _ = √2 * x * √L * √(1 - L⁻¹ * A) := by rw [← he1]; ring
+    _ ≥ √2 * x * √L * (1 - L⁻¹ * A) := by gcongr
+    _ ≥ √2 * x * √L * (1 - εI x) := by gcongr
 
 /-- [DIR], §5.4, after Corollary 5.12: from (3.4), $J(1-x)=\sqrt2w_0I(xw_0^{-1})$ (for
 $0\le x\le\frac12$), and $w_0\in[0.895,0.896]$. -/
 theorem J_one_sub (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 2⁻¹) : J (1 - x) = √2 * w₀ * I (x *
     w₀⁻¹) := by
-  sorry
+  rw [eqn_3_4 (1 - x) ⟨by linarith [hx.2], by linarith [hx.1]⟩, Jw]
+  congr 2
+  ring
 
 /-- The quantity
 $\varepsilon=\frac12\frac{\log\log(w_0/x)}{\log(w_0/x)}+\frac{\log(2\pi^{1/2})}{\log(w_0/x)}$
@@ -146,20 +293,71 @@ where $\varepsilon=\frac12\frac{\log\log(w_0/x)}{\log(w_0/x)}+\frac{\log(2\pi^{1
 (for $0<x\le\frac{w_0}5$, where Proposition 5.11 applies). -/
 theorem eqn_5_10 (x : ℝ) (hx : x ∈ Ioc 0 (w₀ / 5)) : J (1 - x) ≥ 2 * x * √(log (w₀ / x)) *
     (1 - εJ x) := by
-  sorry
+  have hw := w₀_mem
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hx0 := hx.1
+  have hy : x * w₀⁻¹ ∈ Ioc (0 : ℝ) 5⁻¹ := by
+    refine ⟨by positivity, ?_⟩
+    rw [← div_eq_mul_inv, div_le_iff₀ hw0]; linarith [hx.2]
+  have hP := prop_5_11 _ hy
+  have hinv : (x * w₀⁻¹)⁻¹ = w₀ / x := by field_simp
+  rw [hinv] at hP
+  rw [J_one_sub x ⟨hx0.le, by linarith [hx.2, hw.2]⟩]
+  have h22 : √2 * √2 = 2 := mul_self_sqrt (by norm_num)
+  have hR : 1 - 2⁻¹ * (log (log (w₀ / x)) / log (w₀ / x)) - log (2 * π ^ (2⁻¹ : ℝ)) /
+      log (w₀ / x) = 1 - εJ x := by simp only [εJ]; ring
+  rw [hR] at hP
+  calc √2 * w₀ * I (x * w₀⁻¹)
+      ≥ √2 * w₀ * (√2 * (x * w₀⁻¹) * √(log (w₀ / x)) * (1 - εJ x)) := by gcongr
+    _ = 2 * x * √(log (w₀ / x)) * (1 - εJ x) := by
+        rw [show √2 * w₀ * (√2 * (x * w₀⁻¹) * √(log (w₀ / x)) * (1 - εJ x)) =
+          (√2 * √2) * (w₀ * w₀⁻¹) * x * √(log (w₀ / x)) * (1 - εJ x) by ring, h22,
+          mul_inv_cancel₀ hw0.ne']
+        ring
 
 /-- [DIR], §5.4: finally, if $x\le\frac1{64}$, then $2(1-\varepsilon)>1$ (by evaluating this
 decreasing function at $x=\frac1{64}$). -/
 theorem two_one_sub_εJ :
     AntitoneOn (fun x ↦ 2 * (1 - εJ x)) (Ioc 0 64⁻¹) ∧ ∀ x ∈ Ioc (0 : ℝ) 64⁻¹, 2 * (1 -
         εJ x) > 1 := by
-  sorry
+  have hw := w₀_mem
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hεJ : ∀ x, εJ x = (2⁻¹ * log (log (w₀ / x)) + log (2 * π ^ (2⁻¹ : ℝ))) /
+      log (w₀ / x) := fun x ↦ by simp only [εJ]; ring
+  have hexp : ∀ x ∈ Ioc (0 : ℝ) 64⁻¹, 57 ≤ exp (log (w₀ / x)) := by
+    intro x hx
+    rw [exp_log (div_pos hw0 hx.1), le_div_iff₀ hx.1]
+    linarith [hx.2, hw.1]
+  have hu1 : ∀ x ∈ Ioc (0 : ℝ) 64⁻¹, 1 ≤ log (w₀ / x) := by
+    intro x hx
+    have := hexp x hx
+    by_contra h
+    have h' : exp (log (w₀ / x)) < exp 1 := exp_lt_exp.2 (not_le.1 h)
+    linarith [exp_one_lt_d9]
+  constructor
+  · intro a ha b hb hab
+    simp only
+    have h := eps_antitone_aux half_le_log_two_mul_sqrt_pi (hu1 b hb)
+      (log_le_log (div_pos hw0 hb.1) (div_le_div_of_nonneg_left hw0.le ha.1 hab))
+    rw [hεJ a, hεJ b]
+    linarith
+  · intro x hx
+    have := eps_lt_half_aux (hexp x hx)
+    rw [hεJ x]
+    linarith
 
 /-- **Corollary 5.12** ([DIR]). For $0<x\le\frac1{64}$,
 $$J(1-x)\ge x\sqrt{\log(w_0/x)},$$
 where we recall that $w_0\in(0,1)$ is the unique value such that $J_{w_0}(\frac12)=\frac12$. -/
 theorem cor_5_12 (x : ℝ) (hx : x ∈ Ioc (0 : ℝ) 64⁻¹) : J (1 - x) ≥ x * √(log (w₀ / x)) := by
-  sorry
+  have hw := w₀_mem
+  have h := eqn_5_10 x ⟨hx.1, by linarith [hx.2, hw.1]⟩
+  have h2 := two_one_sub_εJ.2 x hx
+  have hpos : 0 ≤ x * √(log (w₀ / x)) := mul_nonneg hx.1.le (sqrt_nonneg _)
+  calc J (1 - x) ≥ 2 * x * √(log (w₀ / x)) * (1 - εJ x) := h
+    _ = x * √(log (w₀ / x)) * (2 * (1 - εJ x)) := by ring
+    _ ≥ x * √(log (w₀ / x)) * 1 := by gcongr
+    _ = x * √(log (w₀ / x)) := mul_one _
 
 section Proof_Lemma_5_13
 /-- **(5.11)** (🚗) ([DIR], proof of Lemma 5.13). Running
