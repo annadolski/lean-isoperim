@@ -147,8 +147,9 @@ theorem g_P₁X_antitone_eval : AntitoneOn g_P₁X (Ioc 0 64⁻¹) ∧ g_P₁X 6
 theorem G_PX_I (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 64⁻¹) : G_PX x ≥ 0.2 * x := by
   rcases eq_or_lt_of_le hx.1 with h0 | hpos
   · subst h0
-    rw [G_PX_eq_I 0 ⟨le_rfl, by norm_num⟩, sub_zero,
-      (JXw_half_one w₁ ⟨by rw [poincareX_w₁_eq]; norm_num, by rw [poincareX_w₁_eq]; norm_num⟩).2,
+    rw [G_PX_eq_I 0 ⟨le_rfl, by norm_num⟩, sub_zero]
+    unfold JX
+    rw [(JXw_half_one w₁ ⟨by rw [poincareX_w₁_eq]; norm_num, by rw [poincareX_w₁_eq]; norm_num⟩).2,
       L_zero]
     norm_num
   · obtain ⟨h1, h2⟩ := G_PX_I_lower x ⟨hpos, hx.2⟩

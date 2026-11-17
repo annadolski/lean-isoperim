@@ -208,5 +208,7 @@ Setup complete; proof stage prepared (rules in `AGENTS.md`, split in `automation
 list `automation/proof_dependencies.txt`). Task 1 complete (branch `task1`, 2026-11-12). Next: Tasks 2, 3, 4 of
 `automation/splitting.md` in parallel.
 
-Task 4 (2026-11-16): in progress. `Auto.DIR.prop_2_1` now assumes $\beta\le1$ (user decision,
-`automation/ErrorReport.md`, 2026-11-16).
+Task 4 complete (2026-11-17): all 89 declarations proved; full `lake build` green (2026-11-17);
+`#print axioms` shows only `propext`, `Classical.choice`, `Quot.sound` for all 89.
+`Auto.DIR.prop_2_1` assumes $\beta\le1$ (user decision, `automation/ErrorReport.md`, 2026-11-16).
+Next: Tasks 2, 3 and then 5 of `automation/splitting.md`.

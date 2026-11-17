@@ -85,8 +85,7 @@ section Proof_Theorem_1_7
 /-- **(2.9)** ([DIR], §2.2, shown in Lemma 5.13).
 $$J(x)>L_{\beta_0}(1-x)\quad\text{for}\quad x\in(\tfrac12,1-10^{-10^{380}}).$$ -/
 theorem eqn_2_9 (x : ℝ) (hx : x ∈ Ioo 2⁻¹ (1 - (10 : ℝ) ^ (-(10 : ℝ) ^ 380))) :
-    J x > L β₀ (1 - x) := by
-  sorry
+    J x > L β₀ (1 - x) := lemma_5_13 x hx
 
 /-- [DIR], §2.2: $\tilde b_{\beta_0}(x)=\max(b_{\beta_0}(x),\tilde L(x))$ for $x\in[0,1]$. -/
 theorem btilde_eq_max (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 1) : b̃ β₀ x = max (b β₀ x) (L̃ x) := by
@@ -127,7 +126,13 @@ theorem btilde_eq_max (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 1) : b̃ β₀ x = max
 satisfies $G_{\beta_0}[\tilde L](x,y)\ge0$ for all $\frac12\le x\le y\le1$. -/
 theorem Ltilde_twopt (x y : ℝ) (hx : 2⁻¹ ≤ x) (hxy : x ≤ y) (hy : y ≤ 1) :
     G β₀ (fun t ↦ L β₀ (1 - t)) x y ≥ 0 := by
-  sorry
+  have hl := Real.log_two_gt_d9
+  have hb := bim_lemma_2_3 β₀ (by norm_num [β₀]) (by norm_num [β₀] at hl ⊢; linarith)
+    (1 - y) (1 - x) (by linarith) (by linarith) (by linarith)
+  rw [show 1 - x - (1 - y) = y - x by ring,
+    show (1 - y + (1 - x)) / 2 = 1 - (x + y) / 2 by ring] at hb
+  simp only [G, G₁, ge_iff_le]
+  exact le_max_of_le_left (by linarith)
 
 /-- [DIR], §2.2: the estimate (2.9) means that
 $b_{\beta_0}(\frac{x+y}2)<\tilde L(\frac{x+y}2)$ can only happen when

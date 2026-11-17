@@ -29,6 +29,8 @@ public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_5_Case_QJQ»
 public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_6_Case_QJ»
 public import Isoperim.DIR.«2_Envelope_Functions».«2_0_Envelope_Functions_aux»
 public import Isoperim.DIR.«2_Envelope_Functions».«2_0_Envelope_Functions»
+public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile_aux»
+public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile_aux_cert»
 public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile»
 public import Isoperim.DIR.«2_Envelope_Functions».«2_2_Proofs_Theorems_1_1_1_5_1_7»
 public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_1_Small_Exponents_Large_Exponents»
