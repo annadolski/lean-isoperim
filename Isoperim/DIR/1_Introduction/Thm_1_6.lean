@@ -7,6 +7,7 @@ module
 
 public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«1_Introduction».Thm_1_5
+public import Isoperim.DIR.«1_Introduction».Thm_1_5_aux
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
 
 /-!
@@ -67,7 +68,7 @@ theorem isoProfile_half_le_sqrt (x : ℝ) (hx : x ∈ 𝒬) : 𝓑 2⁻¹ x ≤ 
         = ((2⁻¹ : ℝ) ^ n) ^ 2 * (∑ z, h A z ^ (2⁻¹ : ℝ)) ^ 2 := by ring
       _ ≤ ((2⁻¹ : ℝ) ^ n) ^ 2 * ((∑ z, 𝟏 A z) * ∑ z, h A z) :=
           mul_le_mul_of_nonneg_left hcs (by positivity)
-      _ = (2⁻¹ : ℝ) ^ n * ∑ z, 𝟏 A z * ((2⁻¹ : ℝ) ^ n * ∑ z, h A z) := by ring
+      _ = ((2⁻¹ : ℝ) ^ n * ∑ z, 𝟏 A z) * ((2⁻¹ : ℝ) ^ n * ∑ z, h A z) := by ring
   have key : ∀ v ∈ {v : ℝ | ∃ n : ℕ, 1 ≤ n ∧ ∃ A : Set ({0,1}^n),
       ｜A｜ = (k : ℝ) / 2 ^ m ∧ v = 𝐄 h A ^ (1 : ℝ)},
       𝓑 2⁻¹ ((k : ℝ) / 2 ^ m) ^ 2 ≤ (k : ℝ) / 2 ^ m * v := by
@@ -80,8 +81,9 @@ theorem isoProfile_half_le_sqrt (x : ℝ) (hx : x ∈ 𝒬) : 𝓑 2⁻¹ x ≤ 
   have hne : ({v : ℝ | ∃ n : ℕ, 1 ≤ n ∧ ∃ A : Set ({0,1}^n),
       ｜A｜ = (k : ℝ) / 2 ^ m ∧ v = 𝐄 h A ^ (1 : ℝ)}).Nonempty :=
     ⟨_, m + 1, by omega, A0, hA0, rfl⟩
-  rw [Real.le_sqrt hB0 (mul_nonneg (by positivity) (Real.sInf_nonneg fun v hv ↦ by
-    obtain ⟨n, -, A, -, rfl⟩ := hv; exact hEnn _ n A))]
+  suffices hsq : 𝓑 2⁻¹ ((k : ℝ) / 2 ^ m) ^ 2 ≤ (k : ℝ) / 2 ^ m * 𝓑 1 ((k : ℝ) / 2 ^ m) by
+    calc 𝓑 2⁻¹ ((k : ℝ) / 2 ^ m) = √(𝓑 2⁻¹ ((k : ℝ) / 2 ^ m) ^ 2) := (Real.sqrt_sq hB0).symm
+      _ ≤ _ := Real.sqrt_le_sqrt hsq
   rcases Nat.eq_zero_or_pos k with rfl | hk0
   · obtain ⟨v, hv⟩ := hne
     have := key v hv

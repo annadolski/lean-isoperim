@@ -431,3 +431,7 @@ $w_0=0.895769$.
   is the extra hypothesis $\beta\le1$; awaiting the user's decision (statement change).
 - 2026-11-16T20:07-08:00 — Resolution of the previous entry (user decision): `Auto.DIR.prop_2_1` gets the
   extra hypothesis $\beta\le1$ (docstring: discrepancy paragraph).
+- 2026-11-17T01:20-05:00 — [DIR] (7.4), ancillary `anc/partitions.py`: for the partition of $g_{P,3}$ the script
+  reports a minimum lower bound $0.000767<0.001$ (the paper claims $>0.001$). With the paper's tight lower
+  bound as formalized (`gP3lo_le`) the minimum over the same 26 boxes is $\approx0.0012$, so (7.4) holds as
+  stated with the paper's partition. Resolved (no change).

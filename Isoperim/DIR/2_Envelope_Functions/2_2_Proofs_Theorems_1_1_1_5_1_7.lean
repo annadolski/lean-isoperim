@@ -51,7 +51,23 @@ section Proof_Theorem_1_5
 /-- [DIR], §2.2, proof of Theorem 1.5 (implicit): $b_{\frac12}(2^{-k})=2^{-k}\sqrt k$ for $k\ge1$,
 so that (2.7) gives the lower bound of Theorem 1.5. -/
 theorem b_half_two_pow (k : ℕ) (hk : 1 ≤ k) : b 2⁻¹ (2⁻¹ ^ k) = 2⁻¹ ^ k * √k := by
-  sorry
+  rcases Nat.lt_or_ge k 2 with hk2 | hk2
+  · have : k = 1 := by omega
+    subst this
+    have h2 : (2 : ℝ) ^ ((2⁻¹ : ℝ) + 2) = 4 * 2 ^ (2⁻¹ : ℝ) := by
+      rw [Real.rpow_add two_pos]; norm_num; ring
+    have h1 : (2 : ℝ) ^ ((2⁻¹ : ℝ) + 1) = 2 * 2 ^ (2⁻¹ : ℝ) := by
+      rw [Real.rpow_add two_pos]; norm_num; ring
+    simp only [b, pow_one, Nat.cast_one, Real.sqrt_one, mul_one]
+    rw [if_neg (by norm_num), if_pos le_rfl, Q, h2, h1]
+    ring
+  · have hle : (2⁻¹ : ℝ) ^ k ≤ 4⁻¹ := by
+      calc (2⁻¹ : ℝ) ^ k ≤ 2⁻¹ ^ 2 := pow_le_pow_of_le_one (by norm_num) (by norm_num) hk2
+        _ = 4⁻¹ := by norm_num
+    simp only [b, if_pos hle, L]
+    congr 1
+    rw [inv_pow, inv_inv, Real.logb_pow, Real.logb_self_eq_one (by norm_num), mul_one,
+      Real.sqrt_eq_rpow, one_div]
 
 /-- [DIR], §2.2, proof of Theorem 1.5: the lower bound follows from (2.7). -/
 theorem thm_1_5_lower (k : ℕ) (hk : 1 ≤ k) : 𝓑 2⁻¹ (2⁻¹ ^ k) ≥ 0.997 * 2⁻¹ ^ k * √k := by
@@ -60,7 +76,8 @@ theorem thm_1_5_lower (k : ℕ) (hk : 1 ≤ k) : 𝓑 2⁻¹ (2⁻¹ ^ k) ≥ 0.
 /-- [DIR], §2.2, proof of Theorem 1.5: the upper bound follows from letting $A$ be a subcube of
 codimension $k$. -/
 theorem thm_1_5_upper (k : ℕ) (hk : 1 ≤ k) : 2⁻¹ ^ k * √k ≥ 𝓑 2⁻¹ (2⁻¹ ^ k) := by
-  sorry
+  have := isoProfile_two_pow_le 2⁻¹ (by norm_num) k
+  rwa [Real.sqrt_eq_rpow, one_div]
 
 end Proof_Theorem_1_5
 
@@ -73,7 +90,38 @@ theorem eqn_2_9 (x : ℝ) (hx : x ∈ Ioo 2⁻¹ (1 - (10 : ℝ) ^ (-(10 : ℝ) 
 
 /-- [DIR], §2.2: $\tilde b_{\beta_0}(x)=\max(b_{\beta_0}(x),\tilde L(x))$ for $x\in[0,1]$. -/
 theorem btilde_eq_max (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 1) : b̃ β₀ x = max (b β₀ x) (L̃ x) := by
-  sorry
+  simp only [btilde, b, Ltilde]
+  by_cases h4 : x ≤ 4⁻¹
+  · rw [if_pos h4, if_pos h4, if_neg (by linarith), max_eq_left]
+    have hl : 0 ≤ Real.logb 2 x⁻¹ := by
+      rcases hx.1.lt_or_eq with hx0 | hx0
+      · exact Real.logb_nonneg (by norm_num) ((one_le_inv₀ hx0).2 (by linarith))
+      · simp [← hx0]
+    exact mul_nonneg hx.1 (Real.rpow_nonneg hl _)
+  · rw [if_neg h4, if_neg h4]
+    by_cases h2 : x ≤ 2⁻¹
+    · rw [if_pos h2, if_pos h2]
+      rcases h2.lt_or_eq with h2' | h2'
+      · rw [if_neg (by linarith), max_eq_left]
+        have hs : 0 ≤ (2 : ℝ) ^ β₀ := Real.rpow_nonneg (by norm_num) _
+        have e2 : (2 : ℝ) ^ (β₀ + 2) = 4 * 2 ^ β₀ := by
+          rw [Real.rpow_add two_pos]; norm_num; ring
+        have e1 : (2 : ℝ) ^ (β₀ + 1) = 2 * 2 ^ β₀ := by
+          rw [Real.rpow_add two_pos]; norm_num; ring
+        rw [Q, e2, e1]
+        have hlin : 0 ≤ 4 * 2 ^ β₀ - 3 + 4 * (3 - 2 * 2 ^ β₀) * x := by nlinarith
+        have : 0 ≤ 2 / 3 * x * (1 - x) := by
+          have := hx.1; nlinarith
+        exact mul_nonneg this hlin
+      · subst h2'
+        rw [if_pos le_rfl, (J_half_eq_L_half β₀).2]
+        have e2 : (2 : ℝ) ^ (β₀ + 2) = 4 * 2 ^ β₀ := by
+          rw [Real.rpow_add two_pos]; norm_num; ring
+        have e1 : (2 : ℝ) ^ (β₀ + 1) = 2 * 2 ^ β₀ := by
+          rw [Real.rpow_add two_pos]; norm_num; ring
+        have hQ : Q β₀ 2⁻¹ = 2⁻¹ := by rw [Q, e2, e1]; ring
+        rw [hQ, max_self]
+    · rw [if_neg h2, if_neg h2, if_pos (by linarith)]
 
 /-- [DIR], §2.2 (cited from [BIM23, Lemma 2.3]): the function $x\mapsto L_{\beta_0}(1-x)$
 satisfies $G_{\beta_0}[\tilde L](x,y)\ge0$ for all $\frac12\le x\le y\le1$. -/

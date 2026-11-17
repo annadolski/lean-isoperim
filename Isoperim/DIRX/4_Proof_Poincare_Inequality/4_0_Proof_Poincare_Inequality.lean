@@ -63,7 +63,13 @@ $\|\nabla f\|_1=\frac12(\mathbf{E}\sqrt{h_A}+\mathbf{E}\sqrt{h_{A^c}})$. -/
 theorem norms_indicator (n : ℕ) (A : Set ({0,1}^n)) :
     pNorm 1 (𝟏 A - fun _ ↦ 𝐄 𝟏 A) = 2 * ｜A｜ * (1 - ｜A｜) ∧
       pNorm 1 (∇(𝟏 A)) = 2⁻¹ * (𝐄 (fun x ↦ √(h A x)) + 𝐄 (fun x ↦ √(h Aᶜ x))) := by
-  sorry
+  obtain ⟨-, -, h1⟩ := indicator_norms n A 1 one_pos
+  have h2 := eqn_7_1 n A 1 one_pos
+  rw [Real.rpow_one] at h1 h2
+  refine ⟨by rw [h1]; simp only [Real.rpow_one]; ring, ?_⟩
+  have e : ∀ B : Set ({0,1}^n), 𝐄 h B ^ ((1 : ℝ) / 2) = 𝐄 (fun x ↦ √(h B x)) := by
+    intro B; congr 1; funext x; rw [Pi.pow_apply, Real.sqrt_eq_rpow]
+  rw [h2, e, e, Real.rpow_neg_one]
 
 /-- $G_P(x)=\frac12(B_{w_1}(x)+B_{w_1}(1-x))-2x(1-x)$ ([DIRX], (4.1)). Written `G_PX x`. -/
 noncomputable def G_PX (x : ℝ) : ℝ := 2⁻¹ * (BX w₁ x + BX w₁ (1 - x)) - 2 * x * (1 - x)
