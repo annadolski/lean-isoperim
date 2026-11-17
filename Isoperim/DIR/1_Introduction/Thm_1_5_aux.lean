@@ -147,8 +147,9 @@ open Classical in
 /-- $\#(A\setminus B)+\#(A\cap B)=\#A$. -/
 theorem card_diff_add_inter {m : ℕ} (A B : Set ({0,1}^m)) :
     #{z : {0,1}^m | z ∈ A ∧ z ∉ B} + #{z : {0,1}^m | z ∈ A ∧ z ∈ B} = cardN A := by
-  rw [cardN, ← Finset.filter_card_add_filter_neg_card_eq_card (fun z ↦ z ∈ B),
-    Finset.filter_filter, Finset.filter_filter, add_comm]
+  rw [cardN, ← Finset.card_filter_add_card_filter_not (s := Finset.univ.filter (· ∈ A))
+    (fun z ↦ z ∈ B), add_comm]
+  congr 1 <;> congr 1 <;> ext z <;> simp
 
 open Classical in
 /-- $\#(A\cap B)\le\#B$. -/
@@ -167,11 +168,12 @@ theorem sum_h_ge (m : ℕ) (A : Set ({0,1}^m)) :
     (m : ℝ) * cardN A - 2 * fH (cardN A) ≤ ∑ x, h A x := by
   induction m with
   | zero =>
+    classical
     have hK : cardN A ≤ 1 := by
       calc cardN A ≤ (Finset.univ : Finset ({0,1}^0)).card := Finset.card_filter_le _ _
         _ = 1 := by simp
     rw [fH_le_one hK]
-    simp only [CharP.cast_eq_zero, zero_mul, Nat.cast_zero, mul_zero, sub_zero]
+    simp only [CharP.cast_eq_zero, zero_mul, mul_zero, sub_zero]
     exact Finset.sum_nonneg fun x _ ↦ h_nonneg A x
   | succ m ih =>
     classical
@@ -263,7 +265,8 @@ theorem sum_h_segS (m K : ℕ) (hK : K ≤ 2 ^ m) :
       exact fun z _ hz ↦ hz.2 (hsub hz.1)
     have e2 := card_diff_add_inter (segS m ((K + 1) / 2)) (segS m (K / 2))
     have e3 : #{z : {0,1}^m | z ∈ segS m ((K + 1) / 2) ∧ z ∈ segS m (K / 2)} = K / 2 := by
-      rw [← cardN_segS m (K / 2) hK1, cardN]
+      refine Eq.trans ?_ (cardN_segS m (K / 2) hK1)
+      rw [cardN]
       congr 1; ext z; simp only [Finset.mem_filter, Finset.mem_univ, true_and]
       exact ⟨fun h ↦ h.2, fun h ↦ ⟨hsub h, h⟩⟩
     rw [cardN_segS m _ hK0, e3] at e2
@@ -304,7 +307,7 @@ theorem hart_value_eq {m n K k : ℕ} (hk : 1 ≤ k) (hK : 1 ≤ K) (h : K * 2 ^
     have hk0 : (0 : ℝ) < k := by exact_mod_cast hk
     have ht0 : (0 : ℝ) < 2 ^ t := by positivity
     push_cast
-    rw [mul_div_assoc', hf']
+    rw [hf']
     field_simp
     ring
   rcases le_total n m with hnm | hmn

@@ -6,7 +6,9 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
+public import Isoperim.DIR.«4_Computer_Assisted_Proofs».«4_1_Dyadic_Partitioning»
 public import Isoperim.DIR.«4_Computer_Assisted_Proofs».«4_3_Source_Code_aux»
+public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_3_Properties_L_Q_aux»
 
 /-!
 # Auxiliary lemmas for [DIR] §5.4 Lower bounds for the Gaussian isoperimetric profile
@@ -21,7 +23,15 @@ Auxiliary material for `5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile.lean`:
   bounds for $(2\pi)^{-1/2}$) and the existence of $t<0$ with $|t|^{-1}\varphi(t)=x$;
 * the bounds on the error terms $\varepsilon$ of Proposition 5.11 and Corollary 5.12
   (monotonicity in $u=\log(w/x)$, $\varepsilon<1$, $\varepsilon<\frac12$);
-* certified rational bounds for $\log q$ from the verified checker (`log_mem_of_logIv`).
+* certified rational bounds for $\log q$ from the verified checker (`log_mem_of_logIv`);
+* for Lemma 5.13: the fractional polynomials `fracPoly` with Descartes' rule of signs (at most
+  two positive roots, via Rolle's theorem) and the positivity argument by the intermediate value
+  theorem; certified constants $(\log2)^{-\beta_0}$, $(\log w_0^{-1})^{\beta_0}$;
+* for (5.11): soundness of one-dimensional partitions given by breakpoints (via [DIR],
+  Fact 4.1), the monotonicity of $J$, the upper enclosure $\overline J$ (`JbarJL`), the formula
+  of $-\partial_x^2[J(x)-L_\beta(1-x)]$, the tight lower bound `gJLlo` with its lower-bound
+  property, its checker expression `gJLEx` and the soundness of one box (`gJL_box`). The
+  certificates are in `5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile_aux_cert.lean`.
 -/
 
 @[expose] public section
@@ -280,5 +290,579 @@ theorem log_mem_of_logIv (P : Checker.Params) (q a b : ℚ)
     obtain ⟨-, m1, m2⟩ := Checker.logIv_sound P hI
     exact ⟨(by exact_mod_cast h1 : (a : ℝ) ≤ I.1).trans m1,
       m2.trans (by exact_mod_cast h2 : (I.2 : ℝ) ≤ b)⟩
+
+/-! ### Fractional polynomials with at most two positive roots -/
+
+/-- The fractional polynomial $F(u)=c_0-a\,u^{1/2}+c\,u-d\,u^{1+\gamma}$ of the proof of
+Lemma 5.13. -/
+noncomputable def fracPoly (c₀ a c d γ u : ℝ) : ℝ :=
+  c₀ - a * u ^ (2⁻¹ : ℝ) + c * u - d * u ^ (1 + γ)
+
+/-- $F(u)/u=c_0u^{-1}-a\,u^{-1/2}+c-d\,u^\gamma$. -/
+noncomputable def fracPolyQ (c₀ a c d γ u : ℝ) : ℝ :=
+  c₀ * u ^ (-1 : ℝ) - a * u ^ (-2⁻¹ : ℝ) + c - d * u ^ γ
+
+/-- $F(u)=u\cdot(F(u)/u)$ for $u>0$. -/
+theorem fracPoly_eq_mul {c₀ a c d γ u : ℝ} (hu : 0 < u) :
+    fracPoly c₀ a c d γ u = u * fracPolyQ c₀ a c d γ u := by
+  unfold fracPoly fracPolyQ
+  have h1 : u * u ^ (-1 : ℝ) = 1 := by
+    rw [rpow_neg_one, mul_inv_cancel₀ hu.ne']
+  have h2 : u * u ^ (-2⁻¹ : ℝ) = u ^ (2⁻¹ : ℝ) := by
+    rw [show u * u ^ (-2⁻¹ : ℝ) = u ^ (1 : ℝ) * u ^ (-2⁻¹ : ℝ) by rw [rpow_one],
+      ← rpow_add hu]
+    norm_num
+  have h3 : u * u ^ γ = u ^ (1 + γ) := by
+    rw [show u * u ^ γ = u ^ (1 : ℝ) * u ^ γ by rw [rpow_one], ← rpow_add hu]
+  linear_combination (-c₀) * h1 + a * h2 + d * h3
+
+/-- The derivative of $F(u)/u$ at $u>0$. -/
+theorem hasDerivAt_fracPolyQ (c₀ a c d γ : ℝ) {u : ℝ} (hu : 0 < u) :
+    HasDerivAt (fracPolyQ c₀ a c d γ)
+      (u ^ (γ - 1) * (-c₀ * u ^ (-1 - γ) + a / 2 * u ^ (-2⁻¹ - γ) - d * γ)) u := by
+  have e1 := (hasDerivAt_rpow_const (p := (-1 : ℝ)) (Or.inl hu.ne')).const_mul c₀
+  have e2 := (hasDerivAt_rpow_const (p := (-2⁻¹ : ℝ)) (Or.inl hu.ne')).const_mul a
+  have e3 := (hasDerivAt_rpow_const (p := γ) (Or.inl hu.ne')).const_mul d
+  have h := ((e1.sub e2).add_const c).sub e3
+  refine h.congr_deriv ?_
+  have r1 : u ^ (γ - 1) * u ^ (-1 - γ) = u ^ ((-1 : ℝ) - 1) := by
+    rw [← rpow_add hu]; ring_nf
+  have r2 : u ^ (γ - 1) * u ^ (-2⁻¹ - γ) = u ^ ((-2⁻¹ : ℝ) - 1) := by
+    rw [← rpow_add hu]; ring_nf
+  linear_combination c₀ * r1 - (a / 2) * r2
+
+/-- $F(u)/u$ is continuous on $(0,\infty)$. -/
+theorem continuousOn_fracPolyQ (c₀ a c d γ : ℝ) :
+    ContinuousOn (fracPolyQ c₀ a c d γ) (Ioi 0) := fun _ hu ↦
+  (hasDerivAt_fracPolyQ c₀ a c d γ hu).continuousAt.continuousWithinAt
+
+/-- $F$ is continuous on $(0,\infty)$. -/
+theorem continuousOn_fracPoly (c₀ a c d γ : ℝ) :
+    ContinuousOn (fracPoly c₀ a c d γ) (Ioi 0) := by
+  refine (continuousOn_id.mul (continuousOn_fracPolyQ c₀ a c d γ)).congr fun u hu ↦ ?_
+  exact fracPoly_eq_mul hu
+
+/-- **Descartes' rule of signs** for $F$ (with $c_0<0$, $a,d>0$, $\gamma>0$; the signs of the
+coefficients are $-,-,\pm,-$): $F$ has no three distinct roots in $(0,\infty)$. As in the usual
+proof, by Rolle's theorem two zeros of $(F(u)/u)'$ would lie between them, but
+$(F(u)/u)'=u^{\gamma-1}k(u)$ with $k(u)=-c_0u^{-1-\gamma}+\frac a2u^{-1/2-\gamma}-d\gamma$ strictly
+decreasing. -/
+theorem fracPoly_no_three_roots {c₀ a c d γ : ℝ} (hc₀ : c₀ < 0) (ha : 0 < a) (hγ : 0 < γ)
+    {x y z : ℝ} (hx : 0 < x) (hxy : x < y) (hyz : y < z) (hFx : fracPoly c₀ a c d γ x = 0)
+    (hFy : fracPoly c₀ a c d γ y = 0) (hFz : fracPoly c₀ a c d γ z = 0) : False := by
+  have hy : 0 < y := hx.trans hxy
+  have hz : 0 < z := hy.trans hyz
+  have hq : ∀ u, 0 < u → fracPoly c₀ a c d γ u = 0 → fracPolyQ c₀ a c d γ u = 0 := by
+    intro u hu h
+    rw [fracPoly_eq_mul hu] at h
+    exact (mul_eq_zero.1 h).resolve_left hu.ne'
+  have hc : ∀ p q, 0 < p → ContinuousOn (fracPolyQ c₀ a c d γ) (Icc p q) := fun p q hp ↦
+    (continuousOn_fracPolyQ c₀ a c d γ).mono fun u hu ↦ hp.trans_le hu.1
+  have hd : ∀ p q, 0 < p → ∀ u ∈ Ioo p q, HasDerivAt (fracPolyQ c₀ a c d γ)
+      (u ^ (γ - 1) * (-c₀ * u ^ (-1 - γ) + a / 2 * u ^ (-2⁻¹ - γ) - d * γ)) u :=
+    fun p q hp u hu ↦ hasDerivAt_fracPolyQ c₀ a c d γ (hp.trans hu.1)
+  obtain ⟨e₁, he₁, h₁⟩ := exists_hasDerivAt_eq_zero hxy (hc x y hx)
+    ((hq x hx hFx).trans (hq y hy hFy).symm) (hd x y hx)
+  obtain ⟨e₂, he₂, h₂⟩ := exists_hasDerivAt_eq_zero hyz (hc y z hy)
+    ((hq y hy hFy).trans (hq z hz hFz).symm) (hd y z hy)
+  have he₁0 : 0 < e₁ := hx.trans he₁.1
+  have he₂0 : 0 < e₂ := hy.trans he₂.1
+  have h₁' := (mul_eq_zero.1 h₁).resolve_left (rpow_pos_of_pos he₁0 _).ne'
+  have h₂' := (mul_eq_zero.1 h₂).resolve_left (rpow_pos_of_pos he₂0 _).ne'
+  have hlt : e₁ < e₂ := he₁.2.trans he₂.1
+  have k1 : e₂ ^ (-1 - γ) < e₁ ^ (-1 - γ) := rpow_lt_rpow_of_neg he₁0 hlt (by linarith)
+  have k2 : e₂ ^ (-2⁻¹ - γ) < e₁ ^ (-2⁻¹ - γ) := rpow_lt_rpow_of_neg he₁0 hlt (by linarith)
+  nlinarith [mul_pos (neg_pos.2 hc₀) (sub_pos.2 k1), mul_pos ha (sub_pos.2 k2)]
+
+/-- The roots of $F$ in $(0,\infty)$ form a set of cardinality at most $2$. -/
+theorem fracPoly_encard_roots_le_two {c₀ a c d γ : ℝ} (hc₀ : c₀ < 0) (ha : 0 < a)
+    (hγ : 0 < γ) : Set.encard {u : ℝ | 0 < u ∧ fracPoly c₀ a c d γ u = 0} ≤ 2 := by
+  set S := {u : ℝ | 0 < u ∧ fracPoly c₀ a c d γ u = 0}
+  have H : ∀ x ∈ S, ∀ y ∈ S, ∀ z ∈ S, x < y → y < z → False := fun x hx y hy z hz hxy hyz ↦
+    fracPoly_no_three_roots hc₀ ha hγ hx.1 hxy hyz hx.2 hy.2 hz.2
+  by_contra hS
+  rw [not_le] at hS
+  obtain ⟨x, hx⟩ : S.Nonempty := Set.nonempty_of_encard_ne_zero (by
+    intro h; rw [h] at hS; simp at hS)
+  have h1 : 1 < (S \ {x}).encard := by
+    have := Set.encard_sdiff_singleton_add_one hx
+    by_contra h
+    rw [not_lt] at h
+    have : S.encard ≤ 1 + 1 := by rw [← this]; exact add_le_add_left h 1
+    have h2 := hS.trans_le this
+    norm_num at h2
+  obtain ⟨y, z, hy, hz, hyz⟩ := Set.one_lt_encard_iff.1 h1
+  have hxy : x ≠ y := fun h ↦ hy.2 (Set.mem_singleton_iff.2 h.symm)
+  have hxz : x ≠ z := fun h ↦ hz.2 (Set.mem_singleton_iff.2 h.symm)
+  have hy' := hy.1
+  have hz' := hz.1
+  rcases lt_or_gt_of_ne hxy with h1 | h1 <;> rcases lt_or_gt_of_ne hxz with h2 | h2 <;>
+    rcases lt_or_gt_of_ne hyz with h3 | h3
+  · exact H x hx y hy' z hz' h1 h3
+  · exact H x hx z hz' y hy' h2 h3
+  · exact H z hz' x hx y hy' h2 h1
+  · exact H z hz' x hx y hy' h2 h1
+  · exact H y hy' x hx z hz' h1 h2
+  · exact H y hy' x hx z hz' h1 h2
+  · exact H y hy' z hz' x hx h3 h2
+  · exact H z hz' y hy' x hx h3 h1
+
+/-- **Positivity from sign data** ([DIR], proof of Lemma 5.13): if $F(a_0)<0<F(a)$, $F(b)>0>F(b_0)$
+with $0<a_0<a\le b<b_0$, then $F>0$ on $[a,b]$ (otherwise, by the intermediate value theorem, $F$
+would have three roots in $(0,\infty)$). -/
+theorem fracPoly_pos_of_signs {c₀ a c d γ : ℝ} (hc₀ : c₀ < 0) (ha : 0 < a) (hγ : 0 < γ)
+    {a₀ a₁ b₁ b₀ : ℝ} (ha₀ : 0 < a₀) (h01 : a₀ < a₁) (h11 : a₁ ≤ b₁) (h10 : b₁ < b₀)
+    (hFa₀ : fracPoly c₀ a c d γ a₀ < 0) (hFa₁ : 0 < fracPoly c₀ a c d γ a₁)
+    (hFb₁ : 0 < fracPoly c₀ a c d γ b₁) (hFb₀ : fracPoly c₀ a c d γ b₀ < 0) :
+    ∀ u ∈ Icc a₁ b₁, 0 < fracPoly c₀ a c d γ u := by
+  intro u hu
+  set F := fracPoly c₀ a c d γ
+  have hcont : ∀ p q, 0 < p → ContinuousOn F (Icc p q) := fun p q hp ↦
+    (continuousOn_fracPoly c₀ a c d γ).mono fun v hv ↦ hp.trans_le hv.1
+  have ha₁ : 0 < a₁ := ha₀.trans h01
+  have hu0 : 0 < u := ha₁.trans_le hu.1
+  -- a root in (a₀, a₁)
+  obtain ⟨r₀, hr₀, hFr₀⟩ := intermediate_value_Ioo h01.le (hcont a₀ a₁ ha₀) ⟨hFa₀, hFa₁⟩
+  by_contra hneg
+  rw [not_lt] at hneg
+  rcases hneg.lt_or_eq with hlt | heq
+  · obtain ⟨r₁, hr₁, hFr₁⟩ := intermediate_value_Ioo' hu.1 (hcont a₁ u ha₁) ⟨hlt, hFa₁⟩
+    obtain ⟨r₂, hr₂, hFr₂⟩ := intermediate_value_Ioo hu.2 (hcont u b₁ hu0) ⟨hlt, hFb₁⟩
+    exact fracPoly_no_three_roots hc₀ ha hγ (ha₀.trans hr₀.1) (hr₀.2.trans hr₁.1)
+      (hr₁.2.trans hr₂.1) hFr₀ hFr₁ hFr₂
+  · obtain ⟨r₂, hr₂, hFr₂⟩ := intermediate_value_Ioo' h10.le (hcont b₁ b₀ (ha₁.trans_le h11))
+      ⟨hFb₀, hFb₁⟩
+    exact fracPoly_no_three_roots hc₀ ha hγ (ha₀.trans hr₀.1) (hr₀.2.trans_le hu.1)
+      (hu.2.trans_lt hr₂.1) hFr₀ heq hFr₂
+
+/-- $2\log(2\pi^{1/2})=\log(4\pi)$. -/
+theorem two_mul_log_two_mul_sqrt_pi : 2 * log (2 * π ^ (2⁻¹ : ℝ)) = log (4 * π) := by
+  have hπ : π ^ (2⁻¹ : ℝ) = √π := by rw [sqrt_eq_rpow, one_div]
+  have h4 : (4 : ℝ) * π = (2 * √π) ^ 2 := by rw [mul_pow, sq_sqrt pi_pos.le]; norm_num
+  rw [hπ, h4, log_pow]; push_cast; ring
+
+/-! ### Numerical constants of the proof of Lemma 5.13 -/
+
+/-- $(\log2)^{-\beta_0}\le1.2014$. -/
+theorem log_two_rpow_neg_β₀_le : (log 2) ^ (-β₀) ≤ 1.2014 := by
+  have h := Checker.checkUpper_sound Checker.P11 Checker.hw11 []
+    (.rpow (.const Checker.ln2Lo) (-50057 / 100000)) 1.2014 (by decide +kernel)
+  simp only [Checker.denote] at h
+  have hl := Checker.ln2_mem
+  have e : (((-50057 / 100000 : ℚ)) : ℝ) = -β₀ := by rw [β₀]; norm_num
+  have e2 : ((1.2014 : ℚ) : ℝ) = 1.2014 := by norm_num
+  rw [e, e2] at h
+  have hpos : (0 : ℝ) < Checker.ln2Lo := by norm_num [Checker.ln2Lo]
+  refine le_trans ?_ h.le
+  exact rpow_le_rpow_of_nonpos hpos hl.1 (by rw [β₀]; norm_num)
+
+/-- $0\le\log w_0^{-1}\le0.110073$. -/
+theorem log_w₀_inv_mem : 0 ≤ log w₀⁻¹ ∧ log w₀⁻¹ ≤ 0.110073 := by
+  have hw := Checker.w₀_mem_11
+  have hw0 : (0 : ℝ) < w₀ := by linarith [hw.1]
+  have h := log_mem_of_logIv Checker.P11 (0.895769326048)⁻¹ 0.11 0.110073 (by decide +kernel)
+  have e1 : (((0.895769326048 : ℚ)⁻¹ : ℚ) : ℝ) = (0.895769326048 : ℝ)⁻¹ := by norm_num
+  have e2 : ((0.110073 : ℚ) : ℝ) = 0.110073 := by norm_num
+  rw [e1, e2] at h
+  constructor
+  · rw [log_inv]; linarith [log_nonpos hw0.le (by linarith [hw.2] : w₀ ≤ 1)]
+  · exact (log_le_log (by positivity) (inv_anti₀ (by norm_num) hw.1)).trans h.2
+
+/-- $(\log w_0^{-1})^{\beta_0}\le0.33136$. -/
+theorem log_w₀_inv_rpow_le : (log w₀⁻¹) ^ β₀ ≤ 0.33136 := by
+  have h := Checker.checkUpper_sound Checker.P11 Checker.hw11 []
+    (.rpow (.const 0.110073) (50057 / 100000)) 0.33136 (by decide +kernel)
+  simp only [Checker.denote] at h
+  have e : (((50057 / 100000 : ℚ)) : ℝ) = β₀ := by rw [β₀]; norm_num
+  have e1 : ((0.110073 : ℚ) : ℝ) = 0.110073 := by norm_num
+  have e2 : ((0.33136 : ℚ) : ℝ) = 0.33136 := by norm_num
+  rw [e, e1, e2] at h
+  obtain ⟨h0, h1⟩ := log_w₀_inv_mem
+  exact (rpow_le_rpow h0 h1 (by rw [β₀]; norm_num)).trans h.le
+
+/-- $(\log2)^{-\beta_0}(\log w_0^{-1})^{\beta_0}\le0.39815$. -/
+theorem log_two_mul_log_w₀_le : (log 2) ^ (-β₀) * (log w₀⁻¹) ^ β₀ ≤ 0.39815 := by
+  have h1 := log_two_rpow_neg_β₀_le
+  have h2 := log_w₀_inv_rpow_le
+  have h3 : 0 ≤ (log w₀⁻¹) ^ β₀ := rpow_nonneg log_w₀_inv_mem.1 _
+  nlinarith
+
+/-- $u^{1/2}(u^{\beta_0}+v)=u^{1.00057}+v\,u^{1/2}$ for $u>0$. -/
+theorem rpow_half_mul_add {u : ℝ} (hu : 0 < u) (v : ℝ) :
+    u ^ (2⁻¹ : ℝ) * (u ^ β₀ + v) = u ^ (1.00057 : ℝ) + v * u ^ (2⁻¹ : ℝ) := by
+  rw [mul_add, ← rpow_add hu, show (2⁻¹ : ℝ) + β₀ = 1.00057 by rw [β₀]; norm_num]
+  ring
+
+/-- `fracPoly` as a checker expression at a rational point $u>0$. -/
+def fracPolyEx (c₀ a c d g u : ℚ) : Checker.Ex :=
+  .sub (.add (.sub (.const c₀) (.mul (.const a) (.rpow (.const u) (1 / 2))))
+    (.const (c * u))) (.mul (.const d) (.rpow (.const u) (1 + g)))
+
+/-- `fracPolyEx` denotes `fracPoly` (for all arguments). -/
+theorem fracPolyEx_denote (c₀ a c d g u : ℚ) (ρ : ℕ → ℝ) :
+    Checker.denote ρ (fracPolyEx c₀ a c d g u) = fracPoly c₀ a c d g u := by
+  simp only [fracPolyEx, Checker.denote, fracPoly]
+  push_cast
+  norm_num
+
+/-! ### Soundness of one-dimensional partitions given by breakpoints -/
+
+
+/-- `bpBoxesOK P [c₀, …, c_N]`: $P(c_i,c_{i+1})$ holds for all consecutive breakpoints. -/
+def bpBoxesOK (P : ℚ → ℚ → Prop) : List ℚ → Prop
+  | a :: b :: l => P a b ∧ bpBoxesOK P (b :: l)
+  | _ => True
+
+/-- `bpSorted [c₀, …, c_N]`: the breakpoints are strictly increasing. -/
+def bpSorted : List ℚ → Bool
+  | a :: b :: l => decide (a < b) && bpSorted (b :: l)
+  | _ => true
+
+/-- The rectangles $[c_i,c_{i+1}]\subset\mathbb R^1$ of a list of breakpoints. -/
+noncomputable def bpBoxes : List ℚ → List ((Fin 1 → ℝ) × (Fin 1 → ℝ))
+  | a :: b :: l => ((fun _ ↦ (a : ℝ)), (fun _ ↦ (b : ℝ))) :: bpBoxes (b :: l)
+  | _ => []
+
+/-- Membership in a rectangle of $\mathbb R^1$. -/
+theorem bp_mem_Icc_fin1 {x : Fin 1 → ℝ} {a b : ℝ} :
+    x ∈ Icc (fun _ ↦ a) (fun _ ↦ b) ↔ a ≤ x 0 ∧ x 0 ≤ b := by
+  simp [Pi.le_def, Fin.forall_fin_one]
+
+/-- Adding the rectangle $[a,b]$ to a partition of $[b,c]$ gives a partition of $[a,c]$. -/
+theorem bp_partition_cons {a b c : ℝ} (hab : a < b) (hbc : b ≤ c)
+    {P : Finset ((Fin 1 → ℝ) × (Fin 1 → ℝ))}
+    (hP : IsRectanglePartition (fun _ ↦ b) (fun _ ↦ c) P) :
+    IsRectanglePartition (fun _ ↦ a) (fun _ ↦ c) (insert ((fun _ ↦ a), (fun _ ↦ b)) P) := by
+  obtain ⟨h1, h2, h3⟩ := hP
+  refine ⟨?_, ?_, ?_⟩
+  · intro p hp
+    rcases Finset.mem_insert.1 hp with rfl | hp
+    · exact ⟨fun _ ↦ hab, le_rfl, fun _ ↦ hbc⟩
+    · obtain ⟨r, hl, hu⟩ := h1 p hp
+      exact ⟨r, fun i ↦ hab.le.trans (hl i), hu⟩
+  · rw [Finset.set_biUnion_insert, h2]
+    ext x
+    simp only [mem_union, bp_mem_Icc_fin1]
+    constructor
+    · rintro (⟨h, h'⟩ | ⟨h, h'⟩) <;> constructor <;> linarith
+    · rintro ⟨h, h'⟩
+      rcases le_total (x 0) b with hb | hb
+      · exact Or.inl ⟨h, hb⟩
+      · exact Or.inr ⟨hb, h'⟩
+  · rw [Finset.coe_insert]
+    refine h3.insert fun q hq _ ↦ ?_
+    obtain ⟨-, hl, -⟩ := h1 q hq
+    rw [Set.disjoint_left]
+    intro x hx hx'
+    have e1 := (Set.mem_univ_pi.1 hx 0).2
+    have e2 := (Set.mem_univ_pi.1 hx' 0).1
+    have e3 := hl 0
+    simp only at e1 e2 e3
+    linarith
+
+/-- The rectangles of a strictly increasing list of breakpoints $a<c<\dots<b$ form a partition of
+$[a,b]$ (in the sense of [DIR], §4.1). -/
+theorem bp_isRectanglePartition_boxes : ∀ (a c : ℚ) (l : List ℚ),
+    bpSorted (a :: c :: l) = true →
+    IsRectanglePartition (fun _ ↦ (a : ℝ)) (fun _ ↦ (((c :: l).getLast (by simp) : ℚ) : ℝ))
+      (bpBoxes (a :: c :: l)).toFinset
+  | a, c, [], h => by
+    simp only [bpSorted, Bool.and_eq_true, decide_eq_true_eq] at h
+    have hac : (a : ℝ) < c := by exact_mod_cast h.1
+    simp only [bpBoxes, List.getLast_singleton, List.toFinset_cons, List.toFinset_nil,
+      insert_empty_eq]
+    exact isBoxPartition_singleton fun _ ↦ hac
+  | a, c, d :: l, h => by
+    have h0 := h
+    simp only [bpSorted, Bool.and_eq_true, decide_eq_true_eq] at h0
+    obtain ⟨hac, hcd, -⟩ := h0
+    have h' : bpSorted (c :: d :: l) = true := by
+      simp only [bpSorted, Bool.and_eq_true] at h ⊢
+      exact h.2
+    have hP := bp_isRectanglePartition_boxes c d l h'
+    have hmem : ((fun _ ↦ (c : ℝ)), (fun _ ↦ (d : ℝ))) ∈ (bpBoxes (c :: d :: l)).toFinset :=
+      List.mem_toFinset.2 (by simp [bpBoxes])
+    obtain ⟨-, -, hd⟩ := hP.1 _ hmem
+    have hcd : (c : ℝ) < d := by exact_mod_cast hcd
+    rw [List.getLast_cons_cons]
+    rw [bpBoxes, List.toFinset_cons]
+    exact bp_partition_cons (by exact_mod_cast hac) (hcd.le.trans (hd 0)) hP
+
+/-- If $P(c_i,c_{i+1})$ for all boxes, then every rectangle $[c,d]$ of `bpBoxes` satisfies
+$P(c,d)$. -/
+theorem bp_boxes_pos (fl : ℝ → ℝ → ℝ) (m : ℝ) :
+    ∀ l : List ℚ, bpBoxesOK (fun p q ↦ m < fl p q) l →
+      ∀ p ∈ bpBoxes l, m < fl (p.1 0) (p.2 0)
+  | a :: b :: l, h, p, hp => by
+    rcases List.mem_cons.1 hp with rfl | hp
+    · exact h.1
+    · exact bp_boxes_pos fl m (b :: l) h.2 p hp
+  | [_], _, p, hp => by simp [bpBoxes] at hp
+  | [], _, p, hp => by simp [bpBoxes] at hp
+
+/-- **Soundness of a one-dimensional partition** (via [DIR], Fact 4.1, 'if' part): let
+$\underline f$ be a lower bound of $f$ on $[a,b]$ (i.e. $f(x)\ge\underline f(\underline x,
+\overline x)$ for $x\in[\underline x,\overline x]\subset[a,b]$) and let $a=c_0<\dots<c_N=b$ be
+breakpoints with $\underline f(c_i,c_{i+1})>m$ for all $i$. Then $f>m$ on $[a,b]$. -/
+theorem bp_pos_of_breakpoints (f : ℝ → ℝ) (fl : ℝ → ℝ → ℝ) (m : ℝ) (cs : List ℚ)
+    (a b : ℚ) (hcs : bpSorted cs = true) (ha : cs.head? = some a) (hb : cs.getLast? = some b)
+    (hlen : 2 ≤ cs.length)
+    (hfl : ∀ xl xu : ℝ, (a : ℝ) ≤ xl → xu ≤ b → ∀ x ∈ Icc xl xu, fl xl xu ≤ f x)
+    (hbox : bpBoxesOK (fun p q ↦ m < fl p q) cs) :
+    ∀ x ∈ Icc (a : ℝ) b, m < f x := by
+  match cs, hcs, ha, hb, hlen, hbox with
+  | a' :: c :: l, hcs, ha, hb, _, hbox =>
+    cases ha
+    have hP := bp_isRectanglePartition_boxes a c l hcs
+    have hlast : (c :: l).getLast (by simp) = b := by
+      rw [List.getLast?_cons_cons, List.getLast?_eq_some_getLast (by simp)] at hb
+      exact Option.some.inj hb
+    rw [hlast] at hP
+    intro x hx
+    have hpos := bp_boxes_pos fl m _ hbox
+    have := fact_4_1_if (n := 1) (fun _ ↦ (a : ℝ)) (fun _ ↦ (b : ℝ)) (fun v ↦ f (v 0) - m)
+      (fun u v ↦ fl (u 0) (v 0) - m) ?_ _
+      ⟨hP, fun p hp ↦ sub_pos.2 (hpos p (List.mem_toFinset.1 hp))⟩ (fun _ ↦ x)
+      ⟨fun _ ↦ hx.1, fun _ ↦ hx.2⟩
+    · simpa using this
+    · intro xl xu h1 h2 y hy
+      exact sub_le_sub_right (hfl _ _ (h1 0) (h2 0) (y 0) ⟨hy.1 0, hy.2 0⟩) m
+
+/-! ### The second derivative in (5.11) and its tight lower bound -/
+
+/-- $J_{w_0}$ is increasing on $[\frac12,x_0]$. -/
+theorem gJw_monotoneOn_left : MonotoneOn (gJw w₀) (Icc 2⁻¹ x₀) := by
+  have hw := Checker.w₀_mem_11
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hx0 : x₀ = 1 - w₀ / 2 := rfl
+  refine monotoneOn_of_deriv_nonneg (convex_Icc _ _) ?_ ?_ ?_
+  · exact (continuousOn_gJw hw0).mono fun y hy ↦ ⟨by linarith [hy.1, hw.1], by
+      linarith [hy.2]⟩
+  · intro y hy
+    rw [interior_Icc] at hy
+    exact (hasDerivAt_gJw hw0 ⟨by linarith [hy.1, hw.1], by linarith [hy.2]⟩)
+      |>.differentiableAt.differentiableWithinAt
+  · intro y hy
+    rw [interior_Icc] at hy
+    exact ((deriv_gJw_sign hw0).2.1 y ⟨by linarith [hy.1, hw.1], by linarith [hy.2]⟩).le
+
+/-- $J_{w_0}$ is decreasing on $[x_0,1]$. -/
+theorem gJw_antitoneOn_right : AntitoneOn (gJw w₀) (Icc x₀ 1) := by
+  have hw := Checker.w₀_mem_11
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hx0 : x₀ = 1 - w₀ / 2 := rfl
+  refine antitoneOn_of_deriv_nonpos (convex_Icc _ _) ?_ ?_ ?_
+  · exact (continuousOn_gJw hw0).mono fun y hy ↦ ⟨by linarith [hy.1], hy.2⟩
+  · intro y hy
+    rw [interior_Icc] at hy
+    exact (hasDerivAt_gJw hw0 ⟨by linarith [hy.1], hy.2⟩)
+      |>.differentiableAt.differentiableWithinAt
+  · intro y hy
+    rw [interior_Icc] at hy
+    exact ((deriv_gJw_sign hw0).2.2 y ⟨by linarith [hy.1], hy.2⟩).le
+
+/-- The upper enclosure $\overline J(\underline x,\overline x)$ of (6.2): $J(\overline x)$ if
+$\overline x<x_0$, $J(\underline x)$ if $\underline x>x_0$, and $J(x_0)$ otherwise. -/
+noncomputable def JbarJL (xl xu : ℝ) : ℝ :=
+  if xu < x₀ then J xu else if x₀ < xl then J xl else J x₀
+
+/-- $J(x)\le\overline J(\underline x,\overline x)$ for $x\in[\underline x,\overline x]
+\subset[\frac12,1]$. -/
+theorem J_le_JbarJL {xl xu x : ℝ} (hxl : 2⁻¹ ≤ xl) (hxu : xu ≤ 1) (hx : x ∈ Icc xl xu) :
+    J x ≤ JbarJL xl xu := by
+  have hx0 := x₀_mem_fine
+  have hJ : ∀ y ∈ Icc (2⁻¹ : ℝ) 1, J y = gJw w₀ y := fun y hy ↦ J_eq_gJw hy
+  have hm := gJw_monotoneOn_left
+  have ha := gJw_antitoneOn_right
+  have hxI : x ∈ Icc (2⁻¹ : ℝ) 1 := ⟨hxl.trans hx.1, hx.2.trans hxu⟩
+  have hx0I : x₀ ∈ Icc (2⁻¹ : ℝ) 1 := ⟨by linarith [hx0.1], by linarith [hx0.2]⟩
+  unfold JbarJL
+  split_ifs with h1 h2
+  · rw [hJ x hxI, hJ xu ⟨hxl.trans (hx.1.trans hx.2), hxu⟩]
+    exact hm ⟨hxI.1, by linarith [hx.2]⟩ ⟨hxI.1.trans hx.2, h1.le⟩ hx.2
+  · rw [hJ x hxI, hJ xl ⟨hxl, hx.1.trans (hx.2.trans hxu)⟩]
+    exact ha ⟨h2.le, by linarith [hx.1, hxI.2]⟩ ⟨by linarith [hx.1], hxI.2⟩ hx.1
+  · rw [hJ x hxI, hJ x₀ hx0I]
+    rcases le_total x x₀ with h | h
+    · exact hm ⟨hxI.1, h⟩ ⟨hx0I.1, le_rfl⟩ h
+    · exact ha ⟨le_rfl, hx0I.2⟩ ⟨h, hxI.2⟩ h
+
+/-- $J''$ of (5.11): for $x\in(1-w_0,1)$,
+$-\partial_x^2[J_{w_0}(x)-L_\beta(1-x)]=2J_{w_0}(x)^{-1}+L_\beta''(1-x)$ (using $J''J=-2$ and
+(5.3)). -/
+theorem neg_deriv2_JL (β : ℝ) {x : ℝ} (hx : x ∈ Ioo (1 - w₀) 1) :
+    -deriv (deriv (fun t ↦ Jw w₀ t - L β (1 - t))) x = 2 / Jw w₀ x + L2f β (1 - x) := by
+  have hw := Checker.w₀_mem_11
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hJ : Jw w₀ = gJw w₀ := rfl
+  have hU : IsOpen (Ioo (1 - w₀) 1) := isOpen_Ioo
+  have h01 : ∀ t ∈ Ioo (1 - w₀) 1, 1 - t ∈ Ioo (0 : ℝ) 1 := fun t ht ↦
+    ⟨by linarith [ht.2], by linarith [ht.1, hw.2]⟩
+  have hd1 : ∀ t ∈ Ioo (1 - w₀) 1, HasDerivAt (fun t ↦ Jw w₀ t - L β (1 - t))
+      (deriv (gJw w₀) t + L1f β (1 - t)) t := by
+    intro t ht
+    have h1 := (hasDerivAt_gJw hw0 ht).differentiableAt.hasDerivAt
+    have h2 := (hasDerivAt_L (β := β) (h01 t ht)).comp t ((hasDerivAt_id t).const_sub 1)
+    rw [hJ]
+    convert h1.sub h2 using 1
+    all_goals (try (funext y; rfl))
+    all_goals (try simp)
+  have hev : deriv (fun t ↦ Jw w₀ t - L β (1 - t)) =ᶠ[nhds x]
+      fun t ↦ deriv (gJw w₀) t + L1f β (1 - t) := by
+    filter_upwards [hU.mem_nhds hx] with t ht using (hd1 t ht).deriv
+  have hd2 : HasDerivAt (fun t ↦ deriv (gJw w₀) t + L1f β (1 - t))
+      (deriv (deriv (gJw w₀)) x - L2f β (1 - x)) x := by
+    have h1 := (hasDerivAt_deriv_gJw hw0 hx)
+    rw [← h1.deriv] at h1
+    have h2 := (hasDerivAt_L1f (β := β) (h01 x hx)).comp x ((hasDerivAt_id x).const_sub 1)
+    convert h1.add h2 using 1
+    all_goals (try (funext y; rfl))
+    all_goals (try simp)
+    all_goals ring
+  rw [(hd2.congr_of_eventuallyEq hev).deriv]
+  have hp := gJw_pos hw0 hx
+  have hm := gJw_deriv2_mul hw0 hx
+  rw [hJ]
+  field_simp
+  linarith
+
+/-- The tight lower bound $\underline{g_{JL,\beta_0}}(\underline x,\overline x)=
+2\overline J(\underline x,\overline x)^{-1}-\beta_0(\log2)^{-\beta_0}(1-\overline x)^{-1}
+(1-\beta_0+\log\frac1{1-\overline x})(\log\frac1{1-\underline x})^{-2+\beta_0}$
+([DIR], proof of Lemma 5.13). -/
+noncomputable def gJLlo (xl xu : ℝ) : ℝ :=
+  2 / JbarJL xl xu - β₀ * (log 2) ^ (-β₀) * (1 - xu)⁻¹ * (1 - β₀ + log (1 - xu)⁻¹) *
+    (log (1 - xl)⁻¹) ^ (-2 + β₀)
+
+/-- $\underline{g_{JL,\beta_0}}$ is a lower bound for $2J^{-1}+L_{\beta_0}''(1-x)$ on
+$[\frac12,\frac{2047}{2048}]$. -/
+theorem gJLlo_le {xl xu x : ℝ} (hxl : 2⁻¹ ≤ xl) (hxu : xu ≤ 2047 / 2048) (hx : x ∈ Icc xl xu) :
+    gJLlo xl xu ≤ 2 / Jw w₀ x + L2f β₀ (1 - x) := by
+  have hw := Checker.w₀_mem_11
+  have hw0 : 0 < w₀ := by linarith [hw.1]
+  have hxI : x ∈ Ioo (1 - w₀) 1 := ⟨by linarith [hx.1, hw.1], by linarith [hx.2]⟩
+  have hJx : J x = Jw w₀ x := eqn_3_4 x ⟨hxl.trans hx.1, by linarith [hx.2]⟩
+  have hJpos : 0 < Jw w₀ x := gJw_pos hw0 hxI
+  have hJle : Jw w₀ x ≤ JbarJL xl xu := hJx ▸ J_le_JbarJL hxl (by linarith) hx
+  have h1 : 2 / JbarJL xl xu ≤ 2 / Jw w₀ x := div_le_div_of_nonneg_left (by norm_num) hJpos hJle
+  have hβ : β₀ = 0.50057 := rfl
+  have hA : 0 < (log 2) ^ (-β₀) := rpow_pos_of_pos (log_pos one_lt_two) _
+  have hl : ∀ y, 2⁻¹ ≤ y → y < 1 → log 2 ≤ log (1 - y)⁻¹ := fun y h1 h2 ↦
+    log_le_log (by norm_num) (by rw [le_inv_comm₀ (by norm_num) (by linarith)]; linarith)
+  have hl2 : 0 < log (2 : ℝ) := log_pos one_lt_two
+  have hxl1 : xl < 1 := by linarith [hx.1, hx.2]
+  have hx1 : x < 1 := by linarith [hx.2]
+  have hxu1 : xu < 1 := by linarith
+  have hlx := hl x (hxl.trans hx.1) hx1
+  have hlxl := hl xl hxl hxl1
+  have hlxu := hl xu (hxl.trans (hx.1.trans hx.2)) hxu1
+  have e1 : (1 - x)⁻¹ ≤ (1 - xu)⁻¹ := inv_anti₀ (by linarith) (by linarith [hx.2])
+  have e2 : (log (1 - x)⁻¹) ^ (-2 + β₀) ≤ (log (1 - xl)⁻¹) ^ (-2 + β₀) :=
+    rpow_le_rpow_of_nonpos (by linarith) (log_le_log (by
+      have : 0 < 1 - xl := by linarith
+      positivity) (inv_anti₀ (by linarith) (by linarith [hx.1]))) (by rw [hβ]; norm_num)
+  have e3 : 1 - β₀ + log (1 - x)⁻¹ ≤ 1 - β₀ + log (1 - xu)⁻¹ := by
+    have := log_le_log (by have : 0 < 1 - x := by linarith
+                           positivity) (inv_anti₀ (by linarith) (by linarith [hx.2]) :
+      (1 - x)⁻¹ ≤ (1 - xu)⁻¹)
+    linarith
+  have p1 : 0 < (1 - x)⁻¹ := inv_pos.2 (by linarith)
+  have p2 : 0 < (log (1 - x)⁻¹) ^ (-2 + β₀) := rpow_pos_of_pos (by linarith) _
+  have p3 : 0 < 1 - β₀ + log (1 - x)⁻¹ := by rw [hβ]; linarith
+  have hL2 : -L2f β₀ (1 - x) ≤ β₀ * (log 2) ^ (-β₀) * (1 - xu)⁻¹ * (1 - β₀ + log (1 - xu)⁻¹) *
+      (log (1 - xl)⁻¹) ^ (-2 + β₀) := by
+    have hβ0 : 0 < β₀ := by rw [hβ]; norm_num
+    unfold L2f
+    have : -(-β₀ * (log 2) ^ (-β₀) * (1 - x)⁻¹ * (log (1 - x)⁻¹) ^ (-2 + β₀) *
+        (1 - β₀ + log (1 - x)⁻¹)) = (β₀ * (log 2) ^ (-β₀)) * ((1 - x)⁻¹ *
+          ((1 - β₀ + log (1 - x)⁻¹) * (log (1 - x)⁻¹) ^ (-2 + β₀))) := by ring
+    rw [this]
+    have : β₀ * (log 2) ^ (-β₀) * (1 - xu)⁻¹ * (1 - β₀ + log (1 - xu)⁻¹) *
+        (log (1 - xl)⁻¹) ^ (-2 + β₀) = (β₀ * (log 2) ^ (-β₀)) * ((1 - xu)⁻¹ *
+          ((1 - β₀ + log (1 - xu)⁻¹) * (log (1 - xl)⁻¹) ^ (-2 + β₀))) := by ring
+    rw [this]
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    exact mul_le_mul e1 (mul_le_mul e3 e2 p2.le (by linarith)) (by positivity) (by positivity)
+  unfold gJLlo
+  linarith
+
+/-! ### Certificates for (5.11) -/
+
+/-- $\log2$ as a certified value. -/
+noncomputable def certLog2 : Checker.Cert where
+  l := Checker.ln2Lo
+  u := Checker.ln2Hi
+  v := log 2
+  h := Checker.ln2_mem
+
+/-- $\log\frac1{1-c}$ for rational $c<1$ as a certified value (via `Checker.logIv`). -/
+noncomputable def certLogInv (c a b : ℚ)
+    (h : (match Checker.logIv Checker.P11 (1 - c)⁻¹ with
+      | some I => decide (a ≤ I.1 ∧ I.2 ≤ b)
+      | none => false) = true) : Checker.Cert where
+  l := a
+  u := b
+  v := log (1 - (c : ℝ))⁻¹
+  h := by
+    have := log_mem_of_logIv Checker.P11 _ a b h
+    push_cast at this
+    exact this
+
+/-- $\underline{g_{JL,\beta_0}}(\underline x,\overline x)$ as a checker expression in the variables
+`var 0` $=\log2$, `var 1` $=\overline J(\underline x,\overline x)$,
+`var 2` $=\log\frac1{1-\underline x}$, `var 3` $=\log\frac1{1-\overline x}$. -/
+def gJLEx (xu : ℚ) : Checker.Ex :=
+  .sub (.div (.const 2) (.var 1))
+    (.mul (.mul (.mul (.mul (.const (50057 / 100000)) (.rpow (.var 0) (-50057 / 100000)))
+      (.const (1 - xu)⁻¹)) (.add (.const (1 - 50057 / 100000)) (.var 3)))
+      (.rpow (.var 2) (-2 + 50057 / 100000)))
+
+/-- `gJLEx` denotes $\underline{g_{JL,\beta_0}}$ (for all arguments). -/
+theorem gJLEx_denote (xl xu : ℚ) (k j ll lu : Checker.Cert) (hk : k.v = log 2)
+    (hj : j.v = JbarJL xl xu) (hll : ll.v = log (1 - (xl : ℝ))⁻¹)
+    (hlu : lu.v = log (1 - (xu : ℝ))⁻¹) :
+    Checker.denote (Checker.Cert.val [k, j, ll, lu]) (gJLEx xu) = gJLlo xl xu := by
+  simp only [gJLEx, Checker.denote, gJLlo]
+  have e0 : Checker.Cert.val [k, j, ll, lu] 0 = log 2 := hk
+  have e1 : Checker.Cert.val [k, j, ll, lu] 1 = JbarJL xl xu := hj
+  have e2 : Checker.Cert.val [k, j, ll, lu] 2 = log (1 - (xl : ℝ))⁻¹ := hll
+  have e3 : Checker.Cert.val [k, j, ll, lu] 3 = log (1 - (xu : ℝ))⁻¹ := hlu
+  rw [e0, e1, e2, e3]
+  have hβ : β₀ = 0.50057 := rfl
+  rw [hβ]
+  push_cast
+  norm_num
+
+/-- Soundness of one box of (5.11): if the checker certifies $\underline{g_{JL,\beta_0}}>0.08$,
+then $0.08<\underline{g_{JL,\beta_0}}(\underline x,\overline x)$. -/
+theorem gJL_box (xl xu : ℚ) (j ll lu : Checker.Cert) (hj : j.v = JbarJL xl xu)
+    (hll : ll.v = log (1 - (xl : ℝ))⁻¹) (hlu : lu.v = log (1 - (xu : ℝ))⁻¹)
+    (h : Checker.check Checker.P11 (Checker.Cert.env [certLog2, j, ll, lu]) (gJLEx xu)
+      (2 / 25) = true) :
+    (0.08 : ℝ) < gJLlo xl xu := by
+  have := Checker.check_sound Checker.P11 Checker.hw11 _ _ _ h
+  rw [gJLEx_denote xl xu certLog2 j ll lu rfl hj hll hlu] at this
+  have e : ((2 / 25 : ℚ) : ℝ) = 0.08 := by norm_num
+  rwa [e] at this
+
+/-- $\overline J(\underline x,\overline x)=J(\underline x)$ if $0.55212<\underline x\le\overline x$
+(then $\underline x>x_0$). -/
+theorem jbar_left (xl xu : ℝ) (h1 : (0.55212 : ℝ) < xl) (h2 : xl ≤ xu) :
+    JbarJL xl xu = J xl := by
+  have hx0 := x₀_mem_fine
+  unfold JbarJL
+  have a1 : ¬ xu < x₀ := not_lt.2 (by linarith [hx0.2])
+  have a2 : x₀ < xl := by linarith [hx0.2]
+  simp only [a1, a2, ite_false, ite_true]
+
+/-- $\overline J(\underline x,\overline x)=J(x_0)$ if $\underline x\le0.552115$ and
+$0.55212\le\overline x$ (then $\underline x\le x_0\le\overline x$). -/
+theorem jbar_mid (xl xu : ℝ) (h1 : xl ≤ 0.552115) (h2 : (0.55212 : ℝ) ≤ xu) :
+    JbarJL xl xu = J x₀ := by
+  have hx0 := x₀_mem_fine
+  unfold JbarJL
+  have a1 : ¬ xu < x₀ := not_lt.2 (by linarith [hx0.2])
+  have a2 : ¬ x₀ < xl := not_lt.2 (by linarith [hx0.1])
+  simp only [a1, a2, ite_false]
 
 end Auto.DIR

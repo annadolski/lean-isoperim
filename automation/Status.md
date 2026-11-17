@@ -419,9 +419,9 @@ its state changes; no free-text entries.
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `eqn_2_9`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `btilde_eq_max`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `Ltilde_twopt`
-- in progress — 2026-11-17 00:11:00 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1_holder`
-- not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1`
-- not started — 2026-11-12 15:19:51 ET — [DIR] 1_Introduction/Thm_1_5: `eqn_1_3`
+- complete — 2026-11-17 00:56:22 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1_holder`
+- complete — 2026-11-17 00:56:22 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1`
+- in progress — 2026-11-17 00:56:22 ET — [DIR] 1_Introduction/Thm_1_5: `eqn_1_3`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 1_Introduction/Thm_1_6: `isoProfile_half_le_sqrt`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 7_Proof_Poincare_Inequality/7_0_Proof_Poincare_Inequality: `boolean_eq_indicator`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 7_Proof_Poincare_Inequality/7_0_Proof_Poincare_Inequality: `indicator_norms`

@@ -27,14 +27,18 @@ public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_4_Case_LJ»
 public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_5_Case_QJQ_aux»
 public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_5_Case_QJQ»
 public import Isoperim.DIR.«6_Proof_Two_Point_Inequality».«6_6_Case_QJ»
+public import Isoperim.DIR.«2_Envelope_Functions».«2_0_Envelope_Functions_aux»
 public import Isoperim.DIR.«2_Envelope_Functions».«2_0_Envelope_Functions»
 public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile»
 public import Isoperim.DIR.«2_Envelope_Functions».«2_2_Proofs_Theorems_1_1_1_5_1_7»
 public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_1_Small_Exponents_Large_Exponents»
 public import Isoperim.DIR.«1_Introduction».Thm_1_1
+public import Isoperim.DIR.«1_Introduction».Thm_1_5_aux
 public import Isoperim.DIR.«1_Introduction».Thm_1_5
 public import Isoperim.DIR.«1_Introduction».Thm_1_6
 public import Isoperim.DIR.«1_Introduction».Thm_1_7
+public import Isoperim.DIR.«7_Proof_Poincare_Inequality».«7_0_Proof_Poincare_Inequality_aux»
+public import Isoperim.DIR.«7_Proof_Poincare_Inequality».«7_0_Proof_Poincare_Inequality_aux_cert»
 public import Isoperim.DIR.«7_Proof_Poincare_Inequality».«7_0_Proof_Poincare_Inequality»
 public import Isoperim.DIR.«1_Introduction».Thm_1_10
 public import Isoperim.DIRX.«1_Introduction».Definitions
@@ -50,6 +54,8 @@ public import Isoperim.DIRX.«3_Proof_Two_Point_Inequality».«3_6_Case_QJ»
 public import Isoperim.DIRX.«2_Preliminaries».«2_1_Reduction_Two_Point_Inequality»
 public import Isoperim.DIRX.«1_Introduction».Thm_1_1
 public import Isoperim.DIRX.«1_Introduction».Thm_1_2
+public import Isoperim.DIRX.«4_Proof_Poincare_Inequality».«4_0_Proof_Poincare_Inequality_aux»
+public import Isoperim.DIRX.«4_Proof_Poincare_Inequality».«4_0_Proof_Poincare_Inequality_aux_cert»
 public import Isoperim.DIRX.«4_Proof_Poincare_Inequality».«4_0_Proof_Poincare_Inequality»
 public import Isoperim.DIRX.«1_Introduction».Thm_1_3
 
