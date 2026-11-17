@@ -149,8 +149,7 @@ theorem poincareX_h_P₂_eq {x : ℝ} (hx : x ∈ Ioo 0 w₁) :
     -deriv (fun t ↦ 2⁻¹ * (Q 2⁻¹ t + JX (1 - t)) - 2 * t * (1 - t)) x =
       -(2⁻¹ * Q1f 2⁻¹ x) + 2⁻¹ * DJX (1 - x) + (2 - 4 * x) := by
   have := (poincareX_hasDerivAt_GPXg hx).deriv
-  simp only [GPXg] at this
-  rw [this]
+  rw [show (fun t ↦ 2⁻¹ * (Q 2⁻¹ t + JX (1 - t)) - 2 * t * (1 - t)) = GPXg from rfl, this]
   ring
 
 /-- The tight lower bound of (4.3):
@@ -182,8 +181,9 @@ noncomputable def poincareXCertH : Cert where
     have := checkMem_sound P11 hw11 [] (.JwHalf (29 / 32) 0.0919370219368074 0.0919370219366073)
       0.506993329773636 0.506993329775637 (by decide +kernel)
     simp only [denote] at this
-    rw [poincareX_w₁_eq]
-    exact_mod_cast this
+    have e : ((29 / 32 : ℚ) : ℝ) = 29 / 32 := by norm_num
+    rw [poincareX_w₁_eq, ← e]
+    exact this
 
 /-- Boolean check of an enclosure $[a,b]$ of $J_w(x)$ (rational $w$, $x$) from witnesses
 $s_l,s_u$ (by `gJwIv`). -/
@@ -241,13 +241,13 @@ theorem poincareX_D_mem {c zl zu : ℚ} (h : poincareXCheckD c zl zu = true) :
       (le_gInv_iff hc').2 ((gCDF_le_phiHi P11 zl).trans h1')
     have := mul_le_mul_of_nonneg_left e hs2.le
     rw [← mul_assoc, h22] at this
-    push_cast
+    rw [Rat.cast_mul, Rat.cast_ofNat]
     exact this
   · have e : gInv ((c / (29 / 32) : ℚ) : ℝ) ≤ √2 * zu :=
       (gInv_le_iff hc').2 (h2'.trans (phiLo_le_gCDF P11 zu))
     have := mul_le_mul_of_nonneg_left e hs2.le
     rw [← mul_assoc, h22] at this
-    push_cast
+    rw [Rat.cast_mul, Rat.cast_ofNat]
     exact this
 
 /-- $J_{w_1}'(1-c)=\sqrt2\,\Phi^{-1}(c/w_1)$ for rational $c\in(0,w_1)$ as a certified value. -/

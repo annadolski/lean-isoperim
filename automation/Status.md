@@ -389,7 +389,7 @@ its state changes; no free-text entries.
 - not started — 2026-11-12 15:19:51 ET — [DIR] 3_Variants_Bobkov_Inequality/3_0_Variants_Bobkov_Inequality: `prop_3_3`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 3_Variants_Bobkov_Inequality/3_0_Variants_Bobkov_Inequality: `cor_3_5`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 3_Variants_Bobkov_Inequality/3_0_Variants_Bobkov_Inequality: `J_eqn_3_2`
-- not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_0_Envelope_Functions: `prop_2_1`
+- complete — 2026-11-17 00:11:00 ET — [DIR] 2_Envelope_Functions/2_0_Envelope_Functions: `prop_2_1`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile: `prop_5_11_ibp`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile: `prop_5_11_Phi_le`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile: `prop_5_11_apply_I`
@@ -419,7 +419,7 @@ its state changes; no free-text entries.
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `eqn_2_9`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `btilde_eq_max`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 2_Envelope_Functions/2_2_Proofs_Theorems_1_1_1_5_1_7: `Ltilde_twopt`
-- not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1_holder`
+- in progress — 2026-11-17 00:11:00 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1_holder`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 5_Auxiliary_Estimates/5_1_Small_Exponents_Large_Exponents: `lemma_5_1`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 1_Introduction/Thm_1_5: `eqn_1_3`
 - not started — 2026-11-12 15:19:51 ET — [DIR] 1_Introduction/Thm_1_6: `isoProfile_half_le_sqrt`
@@ -444,7 +444,7 @@ its state changes; no free-text entries.
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 2_Preliminaries/2_2_Properties_J: `εX_monotone`
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 2_Preliminaries/2_2_Properties_J: `eqn_2_6_eval`
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 2_Preliminaries/2_2_Properties_J: `eqn_2_6`
-- not started — 2026-11-12 15:19:51 ET — [DIRX] 2_Preliminaries/2_1_Reduction_Two_Point_Inequality: `kahn_park`
+- in progress — 2026-11-17 00:11:00 ET — [DIRX] 2_Preliminaries/2_1_Reduction_Two_Point_Inequality: `kahn_park`
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 4_Proof_Poincare_Inequality/4_0_Proof_Poincare_Inequality: `bool_eq_indicator`
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 4_Proof_Poincare_Inequality/4_0_Proof_Poincare_Inequality: `norms_indicator`
 - not started — 2026-11-12 15:19:51 ET — [DIRX] 4_Proof_Poincare_Inequality/4_0_Proof_Poincare_Inequality: `G_PX_symm`

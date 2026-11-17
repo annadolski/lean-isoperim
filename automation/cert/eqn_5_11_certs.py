@@ -50,8 +50,8 @@ def main():
     W = w0()
     x0 = 1 - W / 2
     out = []
-    out.append(f"/-- The breakpoints of the admissible partition `g_JL` of [DIR], `anc/partitions.py` "
-               f"({len(pts) - 1} intervals). -/")
+    out.append("/-- The breakpoints of the admissible partition `g_JL` of [DIR], "
+               f"`anc/partitions.py`\n({len(pts) - 1} intervals). -/")
     out.append("def jlPoints : List ℚ :=")
     items = [f"{p.numerator}/{p.denominator}" for p in pts]
     line = "  ["
@@ -67,7 +67,7 @@ def main():
     for k, p in enumerate(pts):
         v = mp.log(1 / (1 - mp.mpf(p.numerator) / p.denominator))
         a, b = dec(v - mp.mpf("1e-15"), 18, False), dec(v + mp.mpf("1e-15"), 18, True)
-        out.append(f"/-- $\log\frac1{{1-c_{{{k}}}}}$, $c_{{{k}}}={p}$. -/")
+        out.append(f"/-- $\\log\\frac1{{1-c_{{{k}}}}}$, $c_{{{k}}}={p}$. -/")
         out.append(f"noncomputable def jlL{k} : Checker.Cert :=")
         out.append(f"  certLogInv {q(p)} {a} {b} (by decide +kernel)")
         out.append("")
@@ -104,15 +104,25 @@ def main():
             mp.log(1 / (1 - xlv)) ** (-2 + b)
         assert val > mp.mpf("0.0805"), (k, val)
         jn = f"jlJ{k}" if jcert[k] == "x" else "jlJx0"
-        hj = f"jbar_left {q(xl)} {q(xu)} (by norm_num [jbar_lt])" if jcert[k] == "x" else \
-            f"jbar_mid {q(xl)} {q(xu)} (by norm_num [jbar_lt]) (by norm_num [jbar_lt])"
+        hj = "(jbar_left _ _ (by norm_num) (by norm_num)).symm" if jcert[k] == "x" else \
+            "(jbar_mid _ _ (by norm_num) (by norm_num)).symm"
         out.append(f"/-- Box {k} of (5.11): $[{xl},{xu}]$ (value {mp.nstr(val, 6)}). -/")
-        out.append(f"theorem jl_box{k} : (0.08 : ℝ) < gJLlo ({q(xl)} : ℝ) ({q(xu)} : ℝ) :=")
-        out.append(f"  gJL_box _ _ {jn} jlL{k} jlL{k + 1} ({hj}) rfl rfl (by decide +kernel)")
+        out.append(f"theorem jl_box{k} :")
+        out.append(f"    (0.08 : ℝ) < gJLlo ({q(xl)} : ℝ) ({q(xu)} : ℝ) :=")
+        out.append(f"  gJL_box _ _ {jn} jlL{k} jlL{k + 1}")
+        out.append(f"    {hj} rfl rfl (by decide +kernel)")
         out.append("")
-    out.append("/-- All boxes of the partition `jlPoints` satisfy $\underline{g_{JL,\beta_0}}>0.08$. -/")
+    out.append("/-- All boxes of the partition `jlPoints` satisfy $\\underline{g_{JL,\\beta_0}}>0.08$. -/")
     out.append("theorem jl_boxes : bpBoxesOK (fun p q ↦ (0.08 : ℝ) < gJLlo p q) jlPoints :=")
-    out.append("  " + "⟨" + ", ".join(f"jl_box{k}" for k in range(len(pts) - 1)) + ", trivial⟩")
+    names = [f"jl_box{k}" for k in range(len(pts) - 1)] + ["trivial⟩"]
+    line = "  ⟨"
+    for k, nm in enumerate(names):
+        piece = nm + (", " if k < len(names) - 1 else "")
+        if len(line) + len(piece) > 98:
+            out.append(line.rstrip())
+            line = "    "
+        line += piece
+    out.append(line)
     print("\n".join(out))
 
 

@@ -104,11 +104,12 @@ theorem lemma_5_1 :
     set X := 𝐄 h A ^ β'
     set a := ｜A｜
     set b := B a
+    have hbH : b ≤ X ^ p⁻¹ * a ^ (1 - p⁻¹) := le_trans hyp hH
     rcases hp.lt_or_eq with hp1 | hp1
     · rcases ha.lt_or_eq with ha0 | ha0
       · have hp0 : 0 < p := by linarith
         have h1 : b ^ p ≤ X * a ^ (p - 1) := by
-          have := Real.rpow_le_rpow hB.le hH hp0.le
+          have := Real.rpow_le_rpow hB.le hbH hp0.le
           rwa [Real.mul_rpow (Real.rpow_nonneg hX _) (Real.rpow_nonneg ha _),
             Real.rpow_inv_rpow hX hp0.ne', ← Real.rpow_mul ha,
             show (1 - p⁻¹) * p = p - 1 by field_simp] at this
@@ -120,7 +121,7 @@ theorem lemma_5_1 :
       · have hp0 : 0 < 1 - p⁻¹ := by
           have : p⁻¹ < 1 := inv_lt_one_of_one_lt₀ hp1
           linarith
-        rw [← ha0, Real.zero_rpow hp0.ne', mul_zero] at hH
+        rw [← ha0, Real.zero_rpow hp0.ne', mul_zero] at hbH
         linarith
     · rw [← hp1]
       simp only [Real.rpow_one, neg_add_cancel, Real.rpow_zero, mul_one]
@@ -128,7 +129,8 @@ theorem lemma_5_1 :
         have := hp1.symm
         rw [hpdef, div_eq_one_iff_eq hβ.ne'] at this
         exact this
-      rw [this]
+      have hXE : X = 𝐄 h A ^ β := by rw [show X = 𝐄 h A ^ β' from rfl, this]
+      rw [hXE]
       exact hyp
   refine ⟨part1, ?_⟩
   intro H β hβ n hn A hA
@@ -147,7 +149,6 @@ theorem lemma_5_1 :
       ((one_lt_inv₀ ha0).2 (by linarith))
     have h1 := part1 n A (fun t ↦ t * (log₂ t⁻¹) ^ β₀) β₀ hβ₀ (H n hn A hA)
       (mul_pos ha0 (Real.rpow_pos_of_pos hL _)) β hβ
-    simp only at h1
     rw [Real.mul_rpow ha0.le (Real.rpow_nonneg hL.le _), ← Real.rpow_mul hL.le,
       show β₀ * (β / β₀) = β by field_simp, mul_comm (｜A｜ ^ (β / β₀)), mul_assoc,
       ← Real.rpow_add ha0, show β / β₀ + (-(β / β₀) + 1) = 1 by ring, Real.rpow_one,
