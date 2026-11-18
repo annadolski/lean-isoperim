@@ -6,7 +6,7 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«4_Computer_Assisted_Proofs».«4_1_Dyadic_Partitioning»
-public import Isoperim.DIR.«4_Computer_Assisted_Proofs».«4_2_Interval_Arithmetic_aux»
+public import Isoperim.Isoperim_aux
 
 /-!
 # [DIR] §4.2 Interval arithmetic

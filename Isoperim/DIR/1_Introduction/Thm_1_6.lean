@@ -7,7 +7,7 @@ module
 
 public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«1_Introduction».Thm_1_5
-public import Isoperim.DIR.«1_Introduction».Thm_1_5_aux
+public import Isoperim.Isoperim_aux
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
 
 /-!

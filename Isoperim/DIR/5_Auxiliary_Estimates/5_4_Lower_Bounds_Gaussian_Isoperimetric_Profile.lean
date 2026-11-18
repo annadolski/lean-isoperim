@@ -8,7 +8,7 @@ module
 public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
-public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile_aux_cert»
+public import Isoperim.Isoperim_aux2
 
 /-!
 # [DIR] §5.4 Lower bounds for the Gaussian isoperimetric profile
@@ -473,8 +473,8 @@ theorem lemma_5_13_u_range (s : ℝ) (hs : s ∈ Ioo ((10 : ℝ) ^ (-(10 : ℝ) 
       linarith [log_nonpos hw0.le (by linarith [hw.2] : w₀ ≤ 1)]
     have h2 : -log s < (10 : ℝ) ^ 380 * log 10 := by
       have := log_lt_log (by positivity) hs.1
-      rw [log_rpow (by norm_num)] at this
-      linarith
+      rw [log_rpow (by norm_num), neg_mul] at this
+      exact neg_lt.mp this
     have h3 : log 10 < 10 := by
       have := log_le_sub_one_of_pos (by norm_num : (0 : ℝ) < 10); linarith
     have h4 : (10 : ℝ) ^ 380 * log 10 ≤ (10 : ℝ) ^ 381 := by

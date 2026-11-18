@@ -21,7 +21,7 @@ The user's current explicit instructions take precedence over both. Raw prompts 
 
 ## Proof stage (user requirement, 2026-11-12T19:06, raw entry 10)
 
-The binding proof-stage rules are at the top of `AGENTS.md` (auxiliary `*_aux.lean` files for
+The binding proof-stage rules are at the top of `AGENTS.md` (auxiliary files for
 proofs over 100 lines or needing extra lemmas; completion = no transitive `sorry`; only
 `propext`, `Classical.choice`, `Quot.sound` for all declarations, no `native_decide`; a proof
 starts only after all its dependencies, listed in `automation/proof_dependencies.txt`, are
@@ -43,7 +43,7 @@ proved). The work split into Tasks 1–5 is in `automation/splitting.md`.
   LeanCert stays in the dependencies for possible later use.
 - **2026-11-13** (user): adopt the verified interval checker with sharing of repeated values
   (tested on branch `cert-test`) for the 🚗 claims; it is part of
-  `4_3_Source_Code_aux.lean` (`Auto.DIR.Checker`, with `w₀_mem_11`, `P11`, `hw11`). Prep only;
+  `4_3_Source_Code_aux.lean`, now `Isoperim/Isoperim_aux2.lean` (`Auto.DIR.Checker`, with `w₀_mem_11`, `P11`, `hw11`). Prep only;
   Tasks 2–4 not started.
 - Paper prose is no longer copied into comments: only docstrings (and module docstrings) remain.
 - Each introduction folder and [DIR] §2, [DIRX] §2 have a `Definitions.lean` with the

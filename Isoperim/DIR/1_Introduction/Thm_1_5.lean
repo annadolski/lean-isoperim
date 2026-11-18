@@ -6,7 +6,7 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«1_Introduction».Definitions
-public import Isoperim.DIR.«1_Introduction».Thm_1_5_aux
+public import Isoperim.Isoperim_aux
 public import Isoperim.DIR.«2_Envelope_Functions».«2_2_Proofs_Theorems_1_1_1_5_1_7»
 
 /-!

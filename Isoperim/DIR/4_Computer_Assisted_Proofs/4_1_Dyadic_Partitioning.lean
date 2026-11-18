@@ -6,7 +6,7 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«1_Introduction».Definitions
-public import Isoperim.DIR.«4_Computer_Assisted_Proofs».«4_1_Dyadic_Partitioning_aux»
+public import Isoperim.Isoperim_aux
 
 /-!
 # [DIR] §4 Computer-assisted proofs, §4.1 Dyadic partitioning

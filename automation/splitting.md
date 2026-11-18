@@ -14,7 +14,7 @@ Order: Task 1 → (Tasks 2, 3, 4 in parallel) → Task 5; the Kahn–Park reduct
 depends only on definitions and can start at once. Within a task, follow the module order of
 `Isoperim.lean` and the declaration order in each file (strict forward order is guaranteed).
 Proof-stage rules: see `AGENTS.md` (a proof may start only when all its dependencies are
-proved; long proofs and new lemmas go into `*_aux.lean` files).
+proved; long proofs and new lemmas go into `Isoperim/Isoperim_aux.lean` / `Isoperim_aux2.lean`).
 
 ## Prompts for the task agents
 
@@ -32,8 +32,8 @@ Give the agent of Task *k* the following prompt (replace *k*):
 > 2. Start a proof only when all its dependencies in `automation/proof_dependencies.txt` are
 >    completely proved (no transitive `sorry`); otherwise work on another ready declaration.
 >    Work in the module order of `Isoperim.lean` and the declaration order within each file.
-> 3. Proofs longer than 100 lines and any additional lemmas go into the `_aux.lean` file of the
->    same folder (see `AGENTS.md`). Facts the paper uses but the scaffold does not state
+> 3. Proofs longer than 100 lines and any additional lemmas go into the auxiliary file
+>    `Isoperim/Isoperim_aux.lean` or `Isoperim_aux2.lean` (see `AGENTS.md`, rule 1). Facts the paper uses but the scaffold does not state
 >    (`automation/forward_reasoning.md` §4) are added there as needed.
 >    Follow the papers' arguments; for the 🚗 claims use the paper's tight lower bound, its
 >    partition (`partitions.py`) and the tools of [DIR] §4 (`AGENTS.md`, rule 8).
@@ -186,7 +186,7 @@ Checked from scratch:
 - Task 3 is the largest because it contains [DIR] Case $Q$, which only [DIRX] §3 (and Task 5) needs;
   keeping Task 1 small lets Tasks 2 and 4 start as early as possible.
 - Facts that the paper proofs use but the scaffold does not state yet (`forward_reasoning.md` §4)
-  are added (in `*_aux.lean` files) by the task that first needs them; if two tasks need the
+  are added (in the auxiliary files `Isoperim/Isoperim_aux*.lean`) by the task that first needs them; if two tasks need the
   same missing fact, it belongs to Task 1.
 - Computer-verified (🚗) claims are proved following the paper with standard axioms only (see
   `AGENTS.md`, rules 3 and 8, and the test on branch `cert-test`, `CertTest/REPORT.md`).

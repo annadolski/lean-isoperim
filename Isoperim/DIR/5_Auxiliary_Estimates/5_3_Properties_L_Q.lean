@@ -6,7 +6,7 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
-public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_3_Properties_L_Q_aux»
+public import Isoperim.Isoperim_aux
 
 /-!
 # [DIR] §5.3 Properties of $L_\beta$ and $Q_\beta$

@@ -9,8 +9,7 @@ public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
 public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality»
 public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_4_Lower_Bounds_Gaussian_Isoperimetric_Profile»
-public import Isoperim.DIR.«7_Proof_Poincare_Inequality».«7_0_Proof_Poincare_Inequality_aux»
-public import Isoperim.DIR.«7_Proof_Poincare_Inequality».«7_0_Proof_Poincare_Inequality_aux_cert»
+public import Isoperim.Isoperim_aux2
 
 /-!
 # [DIR] §7 Proof of the Poincaré inequality
@@ -92,13 +91,13 @@ theorem G_P_symm (β : ℝ) (hβ : β ∈ Icc 2⁻¹ β₀) :
   have hs : ∀ x, G_P β x = G_P β (1 - x) := fun x ↦ by simp only [G_P, sub_sub_cancel]; ring
   have h2β : 2 * β ≠ 0 := by linarith [hβ.1]
   have hJ1 : J 1 = 0 := by rw [J_eq_gJw ⟨by norm_num, le_rfl⟩, gJw_one]
-  have hb0 : b β 0 = 0 := by rw [b, if_pos (by norm_num), L_zero]
-  have hb1 : b β 1 = 0 := by rw [b, if_neg (by norm_num), if_neg (by norm_num), hJ1]
+  have hb0 : b β 0 = 0 := by rw [b, ite_eq_left (by norm_num), L_zero]
+  have hb1 : b β 1 = 0 := by rw [b, ite_eq_right (by norm_num), ite_eq_right (by norm_num), hJ1]
   have h0 : G_P β 0 = 0 := by
     rw [G_P, sub_zero, hb0, hb1, zero_rpow h2β]; ring
   have hhalf : G_P β 2⁻¹ = 0 := by
     have hb : b β 2⁻¹ = 2⁻¹ := by
-      rw [b, if_neg (by norm_num), if_pos le_rfl, poincare_Q_half]
+      rw [b, ite_eq_right (by norm_num), ite_eq_left le_rfl, poincare_Q_half]
     rw [G_P, show (1 : ℝ) - 2⁻¹ = 2⁻¹ by norm_num, hb, inv_rpow (by norm_num),
       rpow_neg (by norm_num)]
     ring
@@ -113,9 +112,9 @@ $2^{-2\beta}(L_\beta(x)+J(1-x))-x^{2\beta}(1-x)-x(1-x)^{2\beta}\ge0$; this is $G
 theorem prop_7_1_case_I_eq (β : ℝ) (x : ℝ) (hx : x ∈ Icc (0 : ℝ) 64⁻¹) :
     G_P β x = 2 ^ (-(2 * β)) * (L β x + J (1 - x)) - x ^ (2 * β) * (1 - x) -
       x * (1 - x) ^ (2 * β) := by
-  have hb1 : b β x = L β x := by rw [b, if_pos (by linarith [hx.2])]
+  have hb1 : b β x = L β x := by rw [b, ite_eq_left (by linarith [hx.2])]
   have hb2 : b β (1 - x) = J (1 - x) := by
-    rw [b, if_neg (by norm_num; linarith [hx.2]), if_neg (by norm_num; linarith [hx.2])]
+    rw [b, ite_eq_right (by norm_num; linarith [hx.2]), ite_eq_right (by norm_num; linarith [hx.2])]
   rw [G_P, hb1, hb2]
 
 /-- The function

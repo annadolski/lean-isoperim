@@ -7,7 +7,7 @@ module
 
 public import Isoperim.DIR.«1_Introduction».Definitions
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
-public import Isoperim.DIR.«3_Variants_Bobkov_Inequality».«3_0_Variants_Bobkov_Inequality_aux»
+public import Isoperim.Isoperim_aux
 
 /-!
 # [DIR] §3 Variants of Bobkov's inequality
@@ -121,7 +121,7 @@ section Proof_Theorem_1_6
 $L(x)=x\sqrt{\log_2(1/x)}$ satisfies (3.2) when $0\le x\le y\le\frac12$. -/
 theorem L_half_eqn_3_2 (x y : ℝ) (hx : 0 ≤ x) (hxy : x ≤ y) (hy : y ≤ 2⁻¹) :
     L 2⁻¹ ((x + y) / 2) ≤ 2⁻¹ * √((y - x) ^ 2 + L 2⁻¹ y ^ 2) + 2⁻¹ * L 2⁻¹ x := by
-  have h := bim_lemma_2_2 2⁻¹ le_rfl (by norm_num) x y hx hxy hy
+  have h := bim_lemma_2_2 2⁻¹ le_rfl x y hx hxy hy
   have hs : ∀ z : ℝ, z ^ (2⁻¹ : ℝ) = √z := fun z ↦ by rw [Real.sqrt_eq_rpow]; norm_num
   rw [inv_inv, Real.rpow_two, Real.rpow_two, hs] at h
   linarith

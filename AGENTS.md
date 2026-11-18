@@ -5,14 +5,16 @@
 ## PROOF STAGE RULES (read first; binding for every coding agent)
 
 1. **Auxiliary files.** If a proof gets longer than 100 lines, or needs additional lemmas,
-   definitions or details beyond what the scaffold states, put that work in a separate file in
-   the same folder named after the file with the suffix `_aux`, e.g.
-   `Isoperim/DIRX/2_Preliminaries/2_2_Properties_J_aux.lean` for `2_2_Properties_J.lean`.
-   The main file imports its `_aux` file; the `_aux` file must not import the main file (state
-   results of the main file that an auxiliary lemma needs as hypotheses of that lemma). Same
-   header, namespace (`Auto.DIR` / `Auto.DIRX`), notation and docstring conventions as the main
-   files; add the `_aux` module to `Isoperim.lean`. Do not change the statements of the scaffold
-   (only exception: rule 7).
+   definitions or details beyond what the scaffold states, put that work in the shared auxiliary
+   file `Isoperim/Isoperim_aux.lean` (one part per paper section, in dependency order). Code that
+   needs definitions or results of a main file which itself imports `Isoperim_aux.lean` (e.g.
+   $I$, $J_w$, $w_0$, $x_0$, [DIR] §4.1, Lemma 5.6, [DIRX] §2 definitions) goes into
+   `Isoperim/Isoperim_aux2.lean`, which imports those main files (no import cycles). A further
+   auxiliary file is created only when one of these exceeds 10,000 lines (user decision,
+   2026-11-18). An auxiliary file must not import a main file that imports it (state results
+   it needs as hypotheses). Same header, namespace (`Auto.DIR` / `Auto.DIRX`), notation and
+   docstring conventions as the main files. Do not change the statements of the scaffold (only
+   exception: rule 7).
 2. **Completion.** A proof is complete only when it no longer depends on `sorry`, directly or
    transitively (check with `#print axioms <name>`).
 3. **Axioms.** Allowed: only the standard Lean axioms `propext`, `Classical.choice`,
@@ -43,7 +45,7 @@
    ([DIR] `anc/partitions.py`, [DIRX] `partitions.py`), soundness of partitioning from [DIR] §4.1
    (`Auto.DIR.fact_4_1_if`, `Auto.DIR.pos_of_partitionN₀`), and one certificate lemma per
    box. Certificates use the verified interval checker `Auto.DIR.Checker` (section of
-   `Isoperim/DIR/4_Computer_Assisted_Proofs/4_3_Source_Code_aux.lean`): write the paper's tight
+   `Isoperim/Isoperim_aux2.lean`): write the paper's tight
    lower bound as an `Ex` expression (with one lemma, for all arguments, that it denotes the real
    lower bound), certify the values that recur across boxes ($J$, $J'$, $J(x_0)$, powers $h^r$,
    …) once as table entries (`Cert.ofJ`, `Cert.ofDJ`, `Cert.ofJx0`, `Cert.ofRpow`, …), and prove

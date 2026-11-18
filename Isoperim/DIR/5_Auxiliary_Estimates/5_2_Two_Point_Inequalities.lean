@@ -6,7 +6,7 @@ Authors: Claude
 module
 
 public import Isoperim.DIR.«2_Envelope_Functions».Definitions
-public import Isoperim.DIR.«5_Auxiliary_Estimates».«5_2_Two_Point_Inequalities_aux»
+public import Isoperim.Isoperim_aux
 
 /-!
 # [DIR] §5.2 Two-point inequalities

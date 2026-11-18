@@ -12,8 +12,7 @@ public import Isoperim.DIRX.«1_Introduction».Definitions
 public import Isoperim.DIRX.«2_Preliminaries».«2_1_Reduction_Two_Point_Inequality»
 public import Isoperim.DIRX.«2_Preliminaries».«2_2_Properties_J»
 public import Isoperim.DIRX.«2_Preliminaries».Definitions
-public import Isoperim.DIRX.«4_Proof_Poincare_Inequality».«4_0_Proof_Poincare_Inequality_aux»
-public import Isoperim.DIRX.«4_Proof_Poincare_Inequality».«4_0_Proof_Poincare_Inequality_aux_cert»
+public import Isoperim.Isoperim_aux2
 
 /-!
 # [DIRX] §4 Proof of the Poincaré inequality
@@ -219,7 +218,7 @@ theorem G_PX_III (x : ℝ) (hx : x ∈ Icc (4⁻¹ : ℝ) 2⁻¹) :
       · rfl
       · exact absurd hx.2 h'
     have hb2 : BX w₁ (1 - x) = J (1 - x) := by
-      rw [BX, if_neg (by norm_num; linarith [hx.2])]
+      rw [BX, ite_eq_right (by norm_num; linarith [hx.2])]
       split_ifs with h
       · have : x = 2⁻¹ := by linarith [hx.2]
         subst this
